@@ -1,8 +1,8 @@
-# Upskilling Tracker
+# Fill The Gap
 
 A 12-week tracker for learning AI-native growth, developer marketing and DevRel skills, built with Claude.
 
-**Live:** https://airwarmedd.github.io/upskilling-tracker/
+**Live:** https://airwarmedd.github.io/fill-the-gap/
 
 ## What it does
 
@@ -14,7 +14,3 @@ A 12-week tracker for learning AI-native growth, developer marketing and DevRel 
 ## Where your data goes
 
 Nowhere. Ticks and notes are saved in your own browser's local storage. Use **Export my notes** to back up a JSON file, and **Import notes** to restore it or move it to another device.
-
-## Tech
-
-One self-contained `index.html`, no build step and no dependencies. Fonts load from Google Fonts. Hosted on GitHub Pages.
