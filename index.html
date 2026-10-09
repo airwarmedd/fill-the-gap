@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Upskilling Tracker</title>
+<meta name="description" content="A 12-week tracker for learning AI-native growth, DevRel and developer marketing skills: tick items off and note what you've understood and the gaps you still feel.">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a logbook — progress summary up top, then one list of items, each with a tick and two notes fields */
+:root{
+  --bg:#f4f5f8; --surface:#ffffff; --ink:#151a24; --muted:#5b6475; --line:#dde1e8; --soft:#eef1f5;
+  --accent:#2d4bd8; --accent-soft:#e6eafc; --done:#11734b; --done-bg:#e2f4ea; --gap:#94590a; --gap-bg:#fbefd9;
+  --display:"Bricolage Grotesque","Segoe UI",system-ui,sans-serif;
+  --body:"IBM Plex Sans","Segoe UI",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#10131a; --surface:#171b24; --ink:#e7eaf0; --muted:#9aa3b5; --line:#2a303d; --soft:#1e2330;
+  --accent:#8ea2ff; --accent-soft:#232b4d; --done:#6fd3a2; --done-bg:#173528; --gap:#f0b866; --gap-bg:#3a2a12; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#10131a; --surface:#171b24; --ink:#e7eaf0; --muted:#9aa3b5; --line:#2a303d; --soft:#1e2330;
+  --accent:#8ea2ff; --accent-soft:#232b4d; --done:#6fd3a2; --done-bg:#173528; --gap:#f0b866; --gap-bg:#3a2a12; color-scheme:dark }
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:14px;line-height:1.5;padding:env(safe-area-inset-top,0px) 16px env(safe-area-inset-bottom,0px)}
+[hidden]{display:none!important}
+.backup{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.backup button,.backup label.btn{font:500 13px var(--body);background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:6px 12px;cursor:pointer}
+.backup button:hover,.backup label.btn:hover{border-color:var(--accent)}
+.backup .msg{font-size:12.5px;color:var(--muted)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.wrap{max-width:960px;margin:0 auto;padding-block:28px 64px;display:grid;gap:22px}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(26px,4vw,34px);line-height:1.1;margin:0;letter-spacing:-.01em}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.sub{color:var(--muted);margin:6px 0 0;max-width:66ch}
+a{color:var(--accent);text-underline-offset:2px}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+
+.banner{font-size:13px;padding:10px 14px;border-radius:8px;background:var(--gap-bg);color:var(--gap)}
+.summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;display:grid;gap:8px;min-width:0}
+.stat .k{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.stat .v{font-family:var(--display);font-weight:700;font-size:26px;font-variant-numeric:tabular-nums;line-height:1}
+.stat .v small{font-family:var(--body);font-size:13px;font-weight:400;color:var(--muted)}
+.bar{height:6px;border-radius:99px;background:var(--soft);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent);width:0;transition:width .3s}
+.stat.total{border-color:var(--accent);background:var(--accent-soft)}
+.stat.total .bar{background:var(--surface)}
+
+.tabs{display:flex;flex-wrap:wrap;gap:8px}
+.tabs button{font:500 13px var(--body);background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:999px;padding:6px 14px;cursor:pointer}
+.tabs button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.tabs .n{font-family:var(--mono);font-size:11px;opacity:.75;margin-left:4px}
+
+section.group{display:grid;gap:8px}
+section.group h2{font-family:var(--display);font-size:18px;font-weight:700;margin:8px 0 0;display:flex;gap:10px;align-items:baseline}
+section.group h2 span{font-family:var(--mono);font-size:12px;font-weight:400;color:var(--muted)}
+.item{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:grid;grid-template-columns:auto 1fr;gap:4px 12px;min-width:0}
+.item.now{border-color:var(--accent);box-shadow:inset 3px 0 0 var(--accent)}
+.item input[type=checkbox]{width:20px;height:20px;margin:2px 0 0;accent-color:var(--done);cursor:pointer}
+.item .main{min-width:0;display:grid;gap:4px}
+.item .t{font-weight:600}
+.item.done .t{color:var(--muted);text-decoration:line-through;text-decoration-color:var(--line)}
+.item .d{color:var(--muted);font-size:13px}
+.meta{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.chip{font-family:var(--mono);font-size:11px;padding:1px 8px;border-radius:999px;background:var(--soft);color:var(--muted);white-space:nowrap}
+.chip.ok{background:var(--done-bg);color:var(--done)}
+.chip.gap{background:var(--gap-bg);color:var(--gap)}
+.chip.nowc{background:var(--accent-soft);color:var(--accent)}
+details.notes{grid-column:2}
+details.notes summary{cursor:pointer;font-size:13px;color:var(--accent);font-weight:500;list-style:none;display:inline-flex;gap:6px;align-items:center}
+details.notes summary::-webkit-details-marker{display:none}
+details.notes summary::before{content:"+";font-family:var(--mono);width:14px;display:inline-block}
+details.notes[open] summary::before{content:"–"}
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.fields label{display:grid;gap:4px;font-size:12px;font-weight:600;color:var(--muted);min-width:0}
+.fields label.g{color:var(--gap)}
+textarea{font:14px/1.45 var(--body);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;min-height:84px;resize:vertical;width:100%}
+textarea:focus{outline:2px solid var(--accent);outline-offset:0;border-color:transparent}
+.saved{grid-column:2;font-family:var(--mono);font-size:11px;color:var(--muted)}
+
+.gaps{display:grid;gap:10px}
+.gapcard{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:grid;gap:6px}
+.gapcard .t{font-weight:600}
+.gapcard .g{border-left:3px solid var(--gap);padding-left:10px;white-space:pre-wrap}
+.gapcard .u{color:var(--muted);font-size:13px;white-space:pre-wrap}
+.empty{color:var(--muted);font-style:italic;background:var(--surface);border:1px dashed var(--line);border-radius:10px;padding:18px}
+.foot{color:var(--muted);font-size:12.5px}
+@media (max-width:620px){.fields{grid-template-columns:1fr}.item{grid-template-columns:auto 1fr}.summary{grid-template-columns:1fr 1fr}.stat.total{grid-column:1/-1}}
+@media (prefers-reduced-motion:reduce){.bar i{transition:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow" id="weekline">12-week plan · starts Mon 12 Oct 2026</div>
+    <h1>Upskilling Tracker</h1>
+    <p class="sub">Tick an item when it's done. Open its notes to write what you've understood and the gap you still feel. Everything saves as you type.</p>
+  </header>
+
+  <div class="banner" id="banner" hidden></div>
+
+  <div class="summary" id="summary"></div>
+
+  <nav class="tabs" role="group" aria-label="Show">
+    <button type="button" id="t-now" data-v="now" aria-pressed="true">This week</button>
+    <button type="button" id="t-all" data-v="all" aria-pressed="false">Everything</button>
+    <button type="button" id="t-skills" data-v="skills" aria-pressed="false">Skills</button>
+    <button type="button" id="t-weeks" data-v="weeks" aria-pressed="false">Weekly plan</button>
+    <button type="button" id="t-res" data-v="res" aria-pressed="false">Resources</button>
+    <button type="button" id="t-proj" data-v="proj" aria-pressed="false">Projects</button>
+    <button type="button" id="t-gaps" data-v="gaps" aria-pressed="false">My gaps<span class="n" id="gapcount"></span></button>
+  </nav>
+
+  <main id="list"></main>
+  <div class="gaps" id="gaps" hidden></div>
+
+  <div class="backup">
+    <button type="button" id="export">Export my notes</button>
+    <label class="btn" for="import">Import notes</label>
+    <input type="file" id="import" class="sr" accept="application/json,.json">
+    <span class="msg" id="backupmsg"></span>
+  </div>
+  <p class="foot">Your ticks and notes are saved only in this browser, never sent anywhere. Export them now and then to back up, or to move them to another device. Paste an export into Claude to get help closing your gaps.</p>
+</div>
+
+<script>
+const SK="https://anthropic.skilljar.com/", HR="https://hackerrank-community-knowledge-base.help.usepylon.com/articles/2563639100-introduction-to-certification";
+const GROUPS=[
+ {key:"skills",name:"Skills to understand",items:[
+  {id:"skill-web",t:"How web apps fit together",d:"You can draw your own app's architecture on a whiteboard",w:[1,2]},
+  {id:"skill-read",t:"Reading JavaScript and Python",d:"You can open a file and say what it does before asking",w:[1,2,3,4,5,6]},
+  {id:"skill-api",t:"APIs",d:"You can call an API in a terminal and read the reply",w:[2,3,4]},
+  {id:"skill-git",t:"Git, GitHub, terminal",d:"Your repos have clean history and a README a stranger can follow",w:[1,4]},
+  {id:"skill-llm",t:"LLM concepts",d:"Explain tokens, context, tool use, RAG, embeddings, MCP, agents, evals to a developer in two minutes",w:[2,3,5,6]},
+  {id:"skill-sql",t:"SQL and analytics",d:"You can tell when a number looks wrong and say why",w:[2,4,6,9]},
+  {id:"skill-spec",t:"Writing a build spec",d:"Claude's first attempt is close to what you meant",w:[3,5]},
+  {id:"skill-debug",t:"Debugging",d:"You can describe a bug in two lines that Claude fixes first time",w:[3,4,5,6]}]},
+ {key:"weeks",name:"Weekly plan",items:[
+  {id:"week-01",t:"Week 1 · Mon 12 Oct",d:"AI Fluency and Claude Code in Action. Set up GitHub and Claude Code. Draw how Nourish is built, then ask Claude to check your drawing.",w:[1],tag:"Learn the stack"},
+  {id:"week-02",t:"Week 2 · Mon 19 Oct",d:"First half of Building with the Claude API. Kaggle Intro to SQL. Re-cut your CV so every role has a business number.",w:[2],tag:"Learn the stack"},
+  {id:"week-03",t:"Week 3 · Mon 26 Oct",d:"Introduction to MCP and the DeepLearning.AI MCP course. Write the spec for Project 1 and start building it.",w:[3],tag:"Learn the stack"},
+  {id:"week-04",t:"Week 4 · Mon 2 Nov",d:"Ship Project 1 with its README and tutorial. Google Analytics certification. HackerRank SQL Basic.",w:[4],tag:"Gate 1: 1 repo + tutorial live"},
+  {id:"week-05",t:"Week 5 · Mon 9 Nov",d:"Finish Building with the Claude API. MongoDB gen AI skill badges. Start Project 2. Put the Project 4 site live.",w:[5],tag:"Build in public"},
+  {id:"week-06",t:"Week 6 · Mon 16 Nov",d:"Ship Project 2 and its blog post. HackerRank SQL Intermediate and JavaScript Basic.",w:[6],tag:"Build in public"},
+  {id:"week-07",t:"Week 7 · Mon 23 Nov",d:"Launch Project 3. Open submissions to your community and publish the first 10 entries.",w:[7],tag:"Build in public"},
+  {id:"week-08",t:"Week 8 · Mon 30 Nov",d:"Read Obviously Awesome and send the Project 6 teardown. Start the Project 7 ad and email test.",w:[8],tag:"Gate 2: 3 projects shipped"},
+  {id:"week-09",t:"Week 9 · Mon 7 Dec",d:"Plan the Delhi meetup. Start AWS AI Practitioner prep. Analyse the Project 4 A/B test in SQL.",w:[9],tag:"Prove it and apply"},
+  {id:"week-10",t:"Week 10 · Mon 14 Dec",d:"Run the meetup and give your talk. Take the AWS exam.",w:[10],tag:"Prove it and apply"},
+  {id:"week-11",t:"Week 11 · Mon 21 Dec",d:"Write 4 case studies for portfolio-2026. Update CV headline and LinkedIn.",w:[11],tag:"Prove it and apply"},
+  {id:"week-12",t:"Week 12 · Mon 28 Dec",d:"Apply to Strong-fit roles and send case-study links to founders and hiring managers.",w:[12],tag:"Gate 3: 15 applications sent"}]},
+ {key:"res",name:"Certifications, courses and tests",items:[
+  {id:"res-cc-action",t:"Claude Code in Action",d:"Anthropic Academy · free certificate",u:SK,w:[1],tag:"Certification"},
+  {id:"res-ai-fluency",t:"AI Fluency: Framework & Foundations",d:"Anthropic Academy · free certificate",u:SK,w:[1],tag:"Certification"},
+  {id:"res-claude-api",t:"Building with the Claude API",d:"Anthropic Academy · free · 8+ hours",u:SK,w:[2,3,4,5],tag:"Certification"},
+  {id:"res-mcp-intro",t:"Introduction to Model Context Protocol",d:"Anthropic Academy · free certificate",u:SK,w:[3],tag:"Certification"},
+  {id:"res-mongo-badges",t:"MongoDB skill badges (gen AI)",d:"MongoDB University · free · 60–90 min each",u:"https://learn.mongodb.com/skills",w:[5],tag:"Certification"},
+  {id:"res-kaggle-sql",t:"Intro to SQL",d:"Kaggle · free certificate",u:"https://www.analyticsvidhya.com/blog/2026/03/free-sql-courses-with-certificate/",w:[2],tag:"Certification"},
+  {id:"res-ga",t:"Google Analytics Certification",d:"Google Skillshop · free",w:[4],tag:"Certification"},
+  {id:"res-hubspot",t:"HubSpot Content Marketing and SEO",d:"HubSpot Academy · free",u:"https://markampus.com/blog/hubspot-certification-free-best-certificates/",w:[],tag:"Certification"},
+  {id:"res-cs50",t:"CS50's Computer Science for Business",d:"Harvard · free to audit",u:"https://www.harvardonline.harvard.edu/course/cs50s-computer-science-business",w:[1,2,3,4],tag:"Course"},
+  {id:"res-dlai",t:"DeepLearning.AI short courses",d:"Prompt Engineering; Functions, Tools and Agents; RAG Agents · free",u:"https://careery.pro/blog/ai-careers/deeplearning-ai-courses-guide",w:[3,4,5,6],tag:"Course"},
+  {id:"res-dlai-mcp",t:"MCP: Build Rich-Context AI Apps with Anthropic",d:"DeepLearning.AI · free",u:"https://aiagentrank.io/learn/provider/deeplearning-ai",w:[3],tag:"Course"},
+  {id:"res-hr-sql-basic",t:"HackerRank SQL Basic",d:"Free · 2–4 timed questions · no AI help",u:HR,w:[4],tag:"Test"},
+  {id:"res-hr-sql-int",t:"HackerRank SQL Intermediate",d:"Free · timed · no AI help",u:HR,w:[6],tag:"Test"},
+  {id:"res-hr-js",t:"HackerRank JavaScript Basic or REST API Intermediate",d:"Free · timed · retake until you pass",u:HR,w:[6],tag:"Test"},
+  {id:"res-meta",t:"Meta Certified Digital Marketing Associate",d:"About $99 · optional",u:"https://markampus.com/blog/meta-blueprint-certification-cost-2026/",w:[8],tag:"Test"},
+  {id:"res-aws",t:"AWS Certified AI Practitioner",d:"$100 · 65 questions, 90 min",u:"https://aws.amazon.com/certification/certified-ai-practitioner/",w:[9,10],tag:"Test"},
+  {id:"res-book-dunford",t:"Obviously Awesome",d:"April Dunford · positioning",w:[8],tag:"Book"},
+  {id:"res-book-devrel",t:"The Business Value of Developer Relations",d:"Mary Thengvall",w:[],tag:"Book"},
+  {id:"res-book-people",t:"People Powered",d:"Jono Bacon · community strategy",w:[],tag:"Book"}]},
+ {key:"proj",name:"Projects",items:[
+  {id:"proj-1-mcp",t:"1 · MCP server for marketers",d:"Report: GitHub stars, installs, tutorial reads",w:[3,4],tag:"Anthropic, OpenAI DevEx"},
+  {id:"proj-2-rag",t:"2 · \"Ask the docs\" RAG app on MongoDB",d:"Report: questions answered, users, post reads",w:[5,6],tag:"MongoDB, AWS"},
+  {id:"proj-3-library",t:"3 · Built-with-AI use case library",d:"Report: submissions, visitors, repeat contributors",w:[7],tag:"Anthropic community"},
+  {id:"proj-4-pseo",t:"4 · Programmatic SEO experiment",d:"Report: indexed pages, organic signups, A/B result",w:[5,6,7,8,9],tag:"Vercel, Replit, Google"},
+  {id:"proj-5-meetup",t:"5 · Delhi AI builders meetup",d:"Report: RSVPs, attendance, projects shipped",w:[9,10],tag:"OpenAI India, MongoDB, Daytona"},
+  {id:"proj-6-teardown",t:"6 · Positioning teardown and launch brief",d:"Report: replies, interviews it gets you",w:[8],tag:"Replit, Atlassian PMM"},
+  {id:"proj-7-paid",t:"7 · Paid and lifecycle test",d:"Report: cost per signup, activation rate",w:[8,9],tag:"OpenAI growth, Meta"}]}
+];
+const ALL=GROUPS.flatMap(g=>g.items.map(i=>({...i,group:g.key})));
+const START=Date.UTC(2026,9,12);
+function weekNow(){const n=new Date();const d=Math.floor((Date.UTC(n.getFullYear(),n.getMonth(),n.getDate())-START)/864e5);if(d<0)return 0;return Math.min(12,Math.floor(d/7)+1)}
+const WEEK=weekNow();
+const focusWeek=WEEK||1;
+
+const timers={}, stamps={};
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+function itemHTML(i){
+  const now=i.w&&i.w.includes(focusWeek);
+  return `<div class="item${now?" now":""}" data-id="${i.id}">
+   <input type="checkbox" id="c-${i.id}" aria-label="Done: ${esc(i.t)}">
+   <div class="main">
+    <label class="t" for="c-${i.id}">${i.u?`<a href="${i.u}" target="_blank" rel="noopener">${esc(i.t)}</a>`:esc(i.t)}</label>
+    <div class="d">${esc(i.d)}</div>
+    <div class="meta">${i.tag?`<span class="chip">${esc(i.tag)}</span>`:""}${now?`<span class="chip nowc">${WEEK?"This week":"Week 1"}</span>`:""}<span class="chip ok" data-b="u" hidden>Understood noted</span><span class="chip gap" data-b="g" hidden>Gap noted</span></div>
+   </div>
+   <details class="notes"><summary>Notes</summary>
+    <div class="fields">
+     <label for="u-${i.id}">What I've understood<textarea id="u-${i.id}" data-f="understood" placeholder="In my own words…"></textarea></label>
+     <label class="g" for="g-${i.id}">The gap I still feel<textarea id="g-${i.id}" data-f="gap" placeholder="What still feels fuzzy, or what I couldn't do without help…"></textarea></label>
+    </div>
+   </details>
+   <div class="saved" data-s></div>
+  </div>`;
+}
+function renderList(){
+  $("#list").innerHTML=GROUPS.map(g=>`<section class="group" data-g="${g.key}"><h2>${g.name}<span data-gc="${g.key}"></span></h2>${g.items.map(itemHTML).join("")}</section>`).join("");
+  $("#list").addEventListener("change",e=>{if(e.target.type==="checkbox"){const id=e.target.closest(".item").dataset.id;paint(id);save(id,true)}});
+  $("#list").addEventListener("input",e=>{if(e.target.tagName==="TEXTAREA"){const id=e.target.closest(".item").dataset.id;paint(id);clearTimeout(timers[id]);timers[id]=setTimeout(()=>save(id),900)}});
+  $("#list").addEventListener("focusout",e=>{if(e.target.tagName==="TEXTAREA"){const id=e.target.closest(".item").dataset.id;if(timers[id]){clearTimeout(timers[id]);save(id)}}});
+}
+const el=id=>document.querySelector(`.item[data-id="${id}"]`);
+function read(id){const r=el(id);return{done:r.querySelector("input").checked,understood:r.querySelector('[data-f="understood"]').value,gap:r.querySelector('[data-f="gap"]').value}}
+function paint(id){
+  const r=el(id),v=read(id);
+  r.classList.toggle("done",v.done);
+  r.querySelector('[data-b="u"]').hidden=!v.understood.trim();
+  r.querySelector('[data-b="g"]').hidden=!v.gap.trim();
+  if(stamps[id])r.querySelector("[data-s]").textContent="Saved "+new Date(stamps[id]).toLocaleString(undefined,{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"});
+  counts();
+}
+function counts(){
+  const stat=(key,label)=>{const items=ALL.filter(i=>!key||i.group===key);const done=items.filter(i=>read(i.id).done).length;return{label,done,total:items.length}};
+  const s=[stat(null,"Overall"),stat("skills","Skills"),stat("weeks","Weeks"),stat("res","Resources"),stat("proj","Projects")];
+  $("#summary").innerHTML=s.map((x,k)=>`<div class="stat${k?"":" total"}"><div class="k">${x.label}</div><div class="v">${x.done}<small> / ${x.total}${k?"":" done"}</small></div><div class="bar"><i style="width:${x.total?Math.round(100*x.done/x.total):0}%"></i></div></div>`).join("");
+  GROUPS.forEach(g=>{const d=g.items.filter(i=>read(i.id).done).length;const c=document.querySelector(`[data-gc="${g.key}"]`);if(c)c.textContent=`${d} of ${g.items.length} done`});
+  const gaps=ALL.filter(i=>read(i.id).gap.trim());
+  $("#gapcount").textContent=gaps.length?gaps.length:"";
+  if(view==="gaps")renderGaps();
+}
+function renderGaps(){
+  const gaps=ALL.filter(i=>read(i.id).gap.trim());
+  $("#gaps").innerHTML=gaps.length?gaps.map(i=>{const v=read(i.id);return `<div class="gapcard"><div class="t">${esc(i.t)}</div><div class="g">${esc(v.gap)}</div>${v.understood.trim()?`<div class="u">Understood: ${esc(v.understood)}</div>`:""}</div>`}).join(""):`<div class="empty">No gaps written yet. Open the notes on any item and fill in "The gap I still feel".</div>`;
+}
+
+let view="now";
+function setView(v){
+  view=v;
+  document.querySelectorAll(".tabs button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.v===v?"true":"false"));
+  const gapsView=v==="gaps";
+  $("#list").hidden=gapsView;$("#gaps").hidden=!gapsView;
+  if(gapsView){renderGaps();return}
+  document.querySelectorAll("section.group").forEach(s=>{
+    const g=s.dataset.g;let any=false;
+    s.querySelectorAll(".item").forEach(r=>{const it=ALL.find(i=>i.id===r.dataset.id);const show=v==="all"||v===g||(v==="now"&&it.w.includes(focusWeek));r.hidden=!show;if(show)any=true});
+    s.hidden=!any;
+  });
+  try{localStorage.setItem("ut-view",v)}catch(e){}
+}
+document.querySelectorAll(".tabs button").forEach(b=>b.addEventListener("click",()=>setView(b.dataset.v)));
+
+function banner(msg){const b=$("#banner");b.textContent=msg||"";b.hidden=!msg}
+const KEY="ut-progress";
+function loadAll(){try{return JSON.parse(localStorage.getItem(KEY)||"{}")||{}}catch(e){return null}}
+function save(id){
+  delete timers[id];
+  const body={...read(id),updatedAt:new Date().toISOString()};
+  const all=loadAll();
+  if(all===null){banner("This browser is blocking storage, so your progress can't be saved. Use Export before you close the page.");return}
+  all[id]=body;
+  try{localStorage.setItem(KEY,JSON.stringify(all));stamps[id]=body.updatedAt;banner("");paint(id)}
+  catch(e){banner("Couldn't save in this browser (storage may be full or blocked). Use Export to keep a copy.")}
+}
+function collect(){const out={};ALL.forEach(i=>{const v=read(i.id);if(v.done||v.understood.trim()||v.gap.trim()||stamps[i.id])out[i.id]={...v,updatedAt:stamps[i.id]||null}});return out}
+$("#export").addEventListener("click",()=>{
+  const items=collect();
+  const payload={app:"upskilling-tracker",version:1,exportedAt:new Date().toISOString(),items:Object.fromEntries(Object.entries(items).map(([id,v])=>[id,{title:(ALL.find(i=>i.id===id)||{}).t,...v}]))};
+  const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=`upskilling-notes-${new Date().toISOString().slice(0,10)}.json`;
+  document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+  $("#backupmsg").textContent=`Exported ${Object.keys(items).length} items.`;
+});
+$("#import").addEventListener("change",async e=>{
+  const f=e.target.files&&e.target.files[0];if(!f)return;
+  try{
+    const data=JSON.parse(await f.text());
+    const items=data&&data.items&&typeof data.items==="object"?data.items:null;
+    if(!items)throw new Error("format");
+    let n=0;
+    Object.entries(items).forEach(([id,v])=>{if(el(id)&&v&&typeof v==="object"){apply(id,{done:!!v.done,understood:String(v.understood||""),gap:String(v.gap||""),updatedAt:v.updatedAt});save(id);n++}});
+    $("#backupmsg").textContent=n?`Imported ${n} items.`:"That file had no matching items.";
+  }catch(err){$("#backupmsg").textContent="That file isn't a tracker export. Pick a .json file made with Export my notes."}
+  e.target.value="";
+});
+function apply(id,v){
+  const r=el(id);if(!r||!v)return;
+  r.querySelector("input").checked=!!v.done;
+  ["understood","gap"].forEach(f=>{const t=r.querySelector(`[data-f="${f}"]`);if(document.activeElement!==t&&!timers[id])t.value=v[f]||""});
+  if(v.updatedAt)stamps[id]=v.updatedAt;
+  paint(id);
+}
+
+renderList();
+let v0="now";try{v0=localStorage.getItem("ut-view")||"now"}catch(e){}
+setView(["now","all","skills","weeks","res","proj","gaps"].includes(v0)?v0:"now");
+$("#weekline").textContent=WEEK?`Week ${WEEK} of 12 · started Mon 12 Oct 2026`:"12-week plan · starts Mon 12 Oct 2026 · showing Week 1";
+counts();
+
+{const all=loadAll();if(all===null)banner("This browser is blocking storage, so your progress can't be saved. Use Export before you close the page.");else Object.keys(all).forEach(id=>apply(id,all[id]))}
+</script>
+</body>
+</html>
