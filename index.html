@@ -1,0 +1,673 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="Fill the Gap: six company sprints that turn job requirements into daily tasks, with notes on what you understood and what is still unclear.">
+<title>Fill the Gap</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a sprint board, one company at a time; the job's requirements sit on top, each daily task points back to the requirement it closes */
+:root{
+  --bg:#f4f5f8; --surface:#ffffff; --ink:#151a24; --muted:#5b6475; --line:#dde1e8; --soft:#eef1f5;
+  --accent:#2d4bd8; --accent-soft:#e6eafc;
+  --have:#11734b; --have-bg:#e2f4ea; --part:#94590a; --part-bg:#fbefd9; --miss:#b42335; --miss-bg:#fbe5e8;
+  --display:"Bricolage Grotesque","Segoe UI",system-ui,sans-serif;
+  --body:"IBM Plex Sans","Segoe UI",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#10131a; --surface:#171b24; --ink:#e7eaf0; --muted:#9aa3b5; --line:#2a303d; --soft:#1e2330;
+  --accent:#8ea2ff; --accent-soft:#232b4d;
+  --have:#6fd3a2; --have-bg:#173528; --part:#f0b866; --part-bg:#3a2a12; --miss:#ff8a98; --miss-bg:#3d1a20; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#10131a; --surface:#171b24; --ink:#e7eaf0; --muted:#9aa3b5; --line:#2a303d; --soft:#1e2330;
+  --accent:#8ea2ff; --accent-soft:#232b4d;
+  --have:#6fd3a2; --have-bg:#173528; --part:#f0b866; --part-bg:#3a2a12; --miss:#ff8a98; --miss-bg:#3d1a20; color-scheme:dark }
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:14px;line-height:1.55;padding:0 16px}
+.wrap{max-width:1040px;margin:0 auto;padding-block:28px 64px;display:grid;gap:22px}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(28px,4vw,38px);line-height:1.05;margin:0;letter-spacing:-.01em}
+h2{font-family:var(--display);font-weight:700;font-size:22px;margin:0;line-height:1.2;text-wrap:balance}
+h3{font-family:var(--display);font-weight:700;font-size:17px;margin:0}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.sub{color:var(--muted);margin:6px 0 0;max-width:70ch}
+a{color:var(--accent);text-underline-offset:2px}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+.banner{font-size:13px;padding:10px 14px;border-radius:8px;background:var(--part-bg);color:var(--part)}
+
+.overall{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 18px}
+.overall .big{font-family:var(--display);font-weight:700;font-size:28px;font-variant-numeric:tabular-nums}
+.overall .big small{font-family:var(--body);font-size:13px;font-weight:400;color:var(--muted)}
+.bar{height:6px;border-radius:99px;background:var(--soft);overflow:hidden;flex:1;min-width:120px}
+.bar i{display:block;height:100%;background:var(--accent);width:0;transition:width .3s}
+
+nav.sprints{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
+nav.sprints button{font:inherit;text-align:left;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer;display:grid;gap:4px;min-width:0}
+nav.sprints button .k{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+nav.sprints button .n{font-family:var(--display);font-weight:700;font-size:16px}
+nav.sprints button .p{font-family:var(--mono);font-size:11px;color:var(--muted)}
+nav.sprints button[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+nav.sprints button.extra .n{font-size:14px}
+nav.sprints .mini{height:4px;border-radius:99px;background:var(--soft);overflow:hidden}
+nav.sprints .mini i{display:block;height:100%;background:var(--accent);width:0}
+
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px 20px;display:grid;gap:12px;min-width:0}
+.head{display:grid;gap:6px}
+.roles{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px}
+.role{border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:grid;gap:4px}
+.role.main{border-color:var(--accent)}
+.role .t{font-weight:600}
+.chip{display:inline-flex;align-items:center;font-family:var(--mono);font-size:11px;padding:1px 8px;border-radius:999px;background:var(--soft);color:var(--muted);white-space:nowrap}
+.chip.main{background:var(--accent-soft);color:var(--accent)}
+.s-have{background:var(--have-bg);color:var(--have)} .s-partial{background:var(--part-bg);color:var(--part)} .s-missing{background:var(--miss-bg);color:var(--miss)} .s-closed{background:var(--have-bg);color:var(--have)}
+
+.tablebox{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:720px}
+th,td{text-align:left;vertical-align:top;padding:10px 10px;border-bottom:1px solid var(--line);font-size:13px}
+th{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:500}
+tr:last-child td{border-bottom:0}
+td .prog{display:block;font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:4px}
+
+.day{display:grid;gap:10px}
+.dayhead{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:baseline;border-top:1px solid var(--line);padding-top:14px}
+.dayhead .date{font-family:var(--mono);font-size:12px;color:var(--accent);font-weight:500}
+.dayhead .today{background:var(--accent);color:var(--surface)}
+.task{border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:grid;grid-template-columns:auto 1fr;gap:6px 12px;min-width:0}
+.task input[type=checkbox]{width:20px;height:20px;margin:2px 0 0;accent-color:var(--have);cursor:pointer}
+.task .main{display:grid;gap:6px;min-width:0}
+.task .tt{font-weight:600;cursor:pointer}
+.task.done{background:var(--soft)}
+.task.done .tt{color:var(--muted);text-decoration:line-through;text-decoration-color:var(--line)}
+.task .how{color:var(--ink)}
+.task .row{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:12.5px}
+.task .lbl{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.task .res a{display:inline-block;background:var(--accent-soft);padding:2px 9px;border-radius:999px;text-decoration:none;font-size:12.5px}
+.task .res a:hover{text-decoration:underline}
+.task .closes .chip{white-space:normal}
+.task .donewhen{font-size:13px;border-left:3px solid var(--have);padding-left:10px}
+.task .co{font-family:var(--mono);font-size:11px;color:var(--accent)}
+details.notes{grid-column:2}
+details.notes summary{cursor:pointer;font-size:13px;color:var(--accent);font-weight:500;list-style:none;display:inline-flex;gap:6px;align-items:center}
+details.notes summary::-webkit-details-marker{display:none}
+details.notes summary::before{content:"+";font-family:var(--mono);width:14px;display:inline-block}
+details.notes[open] summary::before{content:"–"}
+details.notes summary .flag{font-family:var(--mono);font-size:11px;color:var(--muted)}
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.fields label{display:grid;gap:4px;font-size:12px;font-weight:600;color:var(--muted);min-width:0}
+.fields label.g{color:var(--part)}
+textarea{font:14px/1.45 var(--body);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;min-height:80px;resize:vertical;width:100%}
+textarea:focus{outline:2px solid var(--accent);outline-offset:0;border-color:transparent}
+
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.cv{display:grid;gap:10px}
+.cvrow{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:start;font-size:13px}
+.cvrow .from{color:var(--muted);text-decoration:line-through;text-decoration-color:var(--line)}
+.cvrow .arrow{font-family:var(--mono);color:var(--accent)}
+.note{font-size:12.5px;color:var(--muted)}
+
+.matrix td.c{text-align:center;font-family:var(--mono);font-size:12px}
+.matrix .learn{display:inline-block;background:var(--accent);color:var(--surface);border-radius:999px;padding:1px 8px;font-size:11px}
+.matrix .use{color:var(--accent);font-size:16px;line-height:1}
+.gapcard{border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:grid;gap:6px}
+.gapcard .g{border-left:3px solid var(--part);padding-left:10px;white-space:pre-wrap}
+.gapcard .u{color:var(--muted);font-size:13px;white-space:pre-wrap}
+.empty{color:var(--muted);font-style:italic;border:1px dashed var(--line);border-radius:10px;padding:16px}
+.backup{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.backup button,.backup label.btn{font:500 13px var(--body);background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:6px 12px;cursor:pointer}
+.backup .msg{font-size:12.5px;color:var(--muted)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.foot{color:var(--muted);font-size:12.5px}
+@media (max-width:680px){.fields,.two{grid-template-columns:1fr}.cvrow{grid-template-columns:1fr}.cvrow .arrow{display:none}}
+@media (prefers-reduced-motion:reduce){.bar i{transition:none}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow" id="when">6 company sprints · starts Mon 12 Oct 2026</div>
+    <h1>Fill the Gap</h1>
+    <p class="sub">One company at a time. Each sprint starts from what the job asks for, shows what you can already prove, and gives you daily tasks that close each gap. Every task says which requirement it closes, where to learn it, and when it counts as done.</p>
+  </header>
+  <div class="banner" id="banner" hidden></div>
+  <div class="overall" id="overall"></div>
+  <nav class="sprints" id="nav" aria-label="Sprints"></nav>
+  <main id="view"></main>
+  <div class="backup" id="backup" hidden>
+    <button type="button" id="export">Export my progress</button>
+    <label class="btn" for="import">Import progress</label>
+    <input type="file" id="import" class="sr" accept="application/json,.json">
+    <span class="msg" id="backupmsg"></span>
+  </div>
+  <p class="foot" id="foot"></p>
+</div>
+<script>
+const R={
+ lenny:{l:"Lenny's Newsletter: What is a good activation rate",u:"https://www.lennysnewsletter.com/p/what-is-a-good-activation-rate"},
+ seoGuide:{l:"Google SEO Starter Guide",u:"https://developers.google.com/search/docs/fundamentals/seo-starter-guide"},
+ schema:{l:"Google: Intro to structured data",u:"https://developers.google.com/search/docs/appearance/structured-data/intro-structured-data"},
+ pagespeed:{l:"PageSpeed Insights (free)",u:"https://pagespeed.web.dev/"},
+ aeo1:{l:"Dupple: AI search visibility guide",u:"https://www.dupple.com/learn/ai-search-visibility-chatgpt-perplexity"},
+ aeo2:{l:"The HOTH: How to get cited in AI Overviews",u:"https://www.thehoth.com/blog/how-to-get-cited-in-ai-overviews/"},
+ cogSeo:{l:"Cognition: SEO & AEO Lead posting",u:"https://jobs.ashbyhq.com/cognition/7a9d995f-bc55-4347-9db3-1d366308a95e"},
+ cogBrand:{l:"Cognition: Brand Marketer posting",u:"https://jobs.generalcatalyst.com/companies/cognition-technologies/jobs/86735522-brand-marketer"},
+ cogCareers:{l:"Cognition careers page",u:"https://cognition.com/careers"},
+ skillshop:{l:"Google Skillshop (GA4 certification)",u:"https://skillshop.withgoogle.com/"},
+ ga4guide:{l:"Loves Data: how to get GA4 certified",u:"https://lovesdata.com/blog/google-analytics-4-certification"},
+ kaggleSql:{l:"Kaggle: Intro to SQL (free, certificate)",u:"https://www.kaggle.com/learn/intro-to-sql"},
+ hackerrank:{l:"HackerRank skills certification (free)",u:"https://www.hackerrank.com/skills-verification"},
+ googlePmm:{l:"Google: PMM, India Marketing posting",u:"https://jobs.anitab.org/companies/google-24698/jobs/76651623-product-marketing-manager-india-marketing"},
+ igao:{l:"IGotAnOffer: Google PMM interview guide",u:"https://igotanoffer.com/blogs/tech/google-product-marketing-manager-interview"},
+ daytonaRole:{l:"Daytona: Digital Community Manager posting",u:"https://daytonaio.notion.site/Digital-Community-Manager-25b29a8a0d018063b56af5c9acb81668"},
+ daytonaDocs:{l:"Daytona: Getting started docs",u:"https://www.daytona.io/docs/en/getting-started"},
+ daytonaGh:{l:"GitHub: daytonaio/docs",u:"https://github.com/daytonaio/docs"},
+ dxtips:{l:"swyx: DX Tips on hiring DevRel creators",u:"https://dx.tips/cant-hire"},
+ mongoRole:{l:"MongoDB: Senior Community Manager posting",u:"https://jobs.alleycorp.com/companies/mongodb/jobs/49628319-senior-community-manager"},
+ mongoDa:{l:"MongoDB: Senior Developer Advocate posting",u:"https://startup.jobs/senior-developer-advocate-mongodb-7957115"},
+ mongoSkills:{l:"MongoDB University skill badges (free)",u:"https://learn.mongodb.com/skills"},
+ mongoRag:{l:"MongoDB: Build a local RAG with Atlas Vector Search",u:"https://www.mongodb.com/docs/vector-search/tutorials/local-rag/"},
+ anthAcademy:{l:"Anthropic Academy (free courses)",u:"https://anthropic.skilljar.com/"},
+ dlaiMcp:{l:"DeepLearning.AI: MCP with Anthropic (1 h 38 min, free)",u:"https://www.deeplearning.ai/short-courses/mcp-build-rich-context-ai-apps-with-anthropic/"},
+ claudePrompt:{l:"Claude docs: prompt engineering",u:"https://docs.claude.com/en/docs/build-with-claude/prompt-engineering/overview"},
+ anthDcm:{l:"Anthropic: Developer Campaign Marketer posting",u:"https://job-boards.greenhouse.io/anthropic/jobs/5026189008"},
+ anthCml:{l:"Anthropic: Community Marketing Lead posting",u:"https://job-boards.greenhouse.io/anthropic/jobs/5151551008"},
+ oaiDev:{l:"OpenAI for developers",u:"https://developers.openai.com/"},
+ codex:{l:"OpenAI: Get started with Codex",u:"https://openai.com/codex/get-started"},
+ cookbook:{l:"OpenAI Cookbook: Codex",u:"https://developers.openai.com/cookbook/topic/codex"},
+ oaiDml:{l:"OpenAI: Developer Marketing Lead, India posting",u:"https://openai.com/careers/developer-marketing-lead-india-india-remote/"},
+ oaiGrowth:{l:"OpenAI: Growth Marketing Manager posting",u:"https://openai.com/careers/growth-marketing-manager-smb-ads-san-francisco/"}
+};
+
+const SPRINTS=[
+{id:"cognition",n:"Cognition",span:"Week 1 · Mon 12 – Sat 17 Oct",start:"2026-10-12",
+ why:"Your closest match on the whole list. The SEO & AEO Lead role is your core skill (organic growth from scratch, programmatic SEO), so this week is mostly about showing proof, not learning from zero.",
+ roles:[
+  {t:"SEO & AEO Lead",r:R.cogSeo,loc:"San Francisco, on-site",main:true},
+  {t:"Brand Marketer (0–4 yrs)",r:R.cogBrand,loc:"SF / NYC, on-site"}],
+ reqs:[
+  {id:"cog-organic",t:"Built or scaled organic growth at a B2B tech company",have:"AlgoTest, Drift, programmatic SEO systems",s:"partial",fix:"Proof is there but told as reach. Retell it as signups and pipeline."},
+  {id:"cog-pipeline",t:"Measured on qualified traffic and pipeline, not sessions",have:"Impressions and traffic numbers",s:"missing",fix:"Learn funnel language and rewrite your CV around outcomes."},
+  {id:"cog-tech",t:"Hands-on technical SEO: architecture, indexing, structured data, performance, redirects",have:"Search Console work at Drift",s:"partial",fix:"Run a real technical audit and explain each fix."},
+  {id:"cog-aeo",t:"Owns visibility in AI answer engines (ChatGPT, AI Overviews, Perplexity, Claude)",have:"Nothing documented yet",s:"missing",fix:"Run an AEO test on Devin and publish what you find."},
+  {id:"cog-ai",t:"Uses AI heavily day to day",have:"Apps built with Claude: Nourish, Focus Room, robotics course",s:"have",fix:"Show it: link the apps and say how you built them."},
+  {id:"cog-launch",t:"Brand role: runs launches, writes copy that gets attention",have:"Drift X demo videos, founder LinkedIn content",s:"partial",fix:"Write one launch brief and sample copy in Cognition's voice."}],
+ days:[
+  {d:"Mon 12 Oct",date:"2026-10-12",focus:"Rewrite your story around outcomes (every later sprint reuses this)",tasks:[
+   {id:"cog-1a",t:"Pull every real number you have",h:"1.5 h",how:"Open GA, Search Console, Notion and old reports for Drift, AlgoTest, Chosen and your community. List signups, demo calls, DM leads, organic clicks, members, active members. Write the source next to each number.",res:[],why:["cog-organic","cog-pipeline"],done:"A sheet with at least 8 numbers, each with where it came from."},
+   {id:"cog-1b",t:"Learn the funnel words hiring managers use",h:"1 h",how:"Read the activation post below. Then ask Claude: 'Quiz me on acquisition, activation, conversion, retention, MQL, SQL, pipeline. Use my Drift numbers as examples.' Keep going until you get 8 out of 10 right.",res:[R.lenny],why:["cog-pipeline"],done:"You can say which funnel stage each of your numbers belongs to."},
+   {id:"cog-1c",t:"Rewrite your CV bullets as did → result → number",h:"2 h",how:"Ask Claude to draft each bullet from your sheet. You check every number against its source. No bullet should end on impressions alone.",res:[],why:["cog-organic","cog-pipeline"],done:"CV v2 saved, with a business number on every role."}]},
+  {d:"Tue 13 Oct",date:"2026-10-13",focus:"Technical SEO depth",tasks:[
+   {id:"cog-2a",t:"Read Google's SEO Starter Guide and structured data intro",h:"2 h",how:"Read both. For each section, write one example from your own Drift or AlgoTest work. Ask Claude to explain anything you can't link to an example.",res:[R.seoGuide,R.schema],why:["cog-tech"],done:"You can explain indexing, canonicals, redirects, sitemaps and schema with your own examples."},
+   {id:"cog-2b",t:"Audit devin.ai like it's your job",h:"2.5 h",how:"Run PageSpeed Insights on 3 pages. Check robots.txt, sitemap.xml, title tags, and the structured data in the page source (Claude can read the HTML with you). Note what's missing.",res:[R.pagespeed],why:["cog-tech"],done:"A 1-page audit with 5 findings and the fix for each."}]},
+  {d:"Wed 14 Oct",date:"2026-10-14",focus:"AEO: the skill you're missing",tasks:[
+   {id:"cog-3a",t:"Learn how AI answer engines pick sources",h:"1.5 h",how:"Read both guides. Write down 5 tactics in your own words and why each works.",res:[R.aeo1,R.aeo2],why:["cog-aeo"],done:"5 tactics written in your own words."},
+   {id:"cog-3b",t:"Run an AEO test for Devin",h:"3 h",how:"Write 20 questions a buyer would ask ('best AI coding agent for enterprise', 'Devin vs Cursor', 'AI to migrate legacy Java'). Ask each in ChatGPT, Perplexity, Claude and Google. Log whether Devin or Windsurf appears and which sites get cited. Ask Claude to build the sheet.",res:[],why:["cog-aeo"],done:"A 20-row sheet showing where Devin shows up, where it doesn't, and who gets cited instead."}]},
+  {d:"Thu 15 Oct",date:"2026-10-15",focus:"Build the project for Cognition",tasks:[
+   {id:"cog-4a",t:"Write the Devin organic and AEO gap report",h:"3 h",how:"Combine your audit and AEO test into 2 pages: the 10 pages Devin is missing (comparison, use-case), 3 technical fixes, an AEO plan, and how you'd measure pipeline from it.",res:[],why:["cog-organic","cog-tech","cog-aeo","cog-pipeline"],done:"Report published as a case study on portfolio-2026."},
+   {id:"cog-4b",t:"Prototype 3 programmatic pages",h:"2.5 h",how:"With Claude Code, build 3 example use-case pages (e.g. 'Devin for Java 8 migrations') with structured data, and deploy them on Vercel. You write the spec; Claude writes the code.",res:[R.schema],why:["cog-tech","cog-ai"],done:"A live link you can put in the report."}]},
+  {d:"Fri 16 Oct",date:"2026-10-16",focus:"Brand Marketer angle",tasks:[
+   {id:"cog-5a",t:"Write a launch brief for one Devin feature",h:"2 h",how:"Pick a recent Devin or Windsurf release. Write the insight, message, audience, channels, assets and a 2-week timeline on one page.",res:[R.cogBrand],why:["cog-launch"],done:"1-page launch brief."},
+   {id:"cog-5b",t:"Write sample copy in Cognition's voice",h:"1.5 h",how:"5 posts for X and one landing page hero section for that launch. Read Cognition's own posts first and match the tone.",res:[],why:["cog-launch"],done:"Copy saved in one doc, linked from your portfolio."}]},
+  {d:"Sat 17 Oct",date:"2026-10-17",focus:"Apply and reach out",tasks:[
+   {id:"cog-6a",t:"Apply to both roles",h:"1 h",how:"SEO & AEO Lead: put the gap report link in your first line. Brand Marketer: lead with the launch brief and copy.",res:[R.cogSeo,R.cogBrand],why:["cog-organic","cog-launch"],done:"Both applications sent."},
+   {id:"cog-6b",t:"Message the people who'd hire you",h:"1 h",how:"Find Cognition's head of marketing and head of product growth on X or LinkedIn. Send 4 lines: who you are, the report link, one finding, and a question about relocation or visa support.",res:[R.cogCareers],why:["cog-organic"],done:"2 messages sent and logged."}]}],
+ project:{t:"Devin organic and AEO gap report",ship:"2-page report with an audit, a 20-question AEO test, 3 prototype pages and a pipeline measurement plan",num:"Pages Devin is missing, AEO citation rate, and replies or interviews it gets you"},
+ cv:[
+  {from:"Grew Drift's X from 10k to 200k impressions in 45 days",to:"Built Drift's organic channel from zero: [N] signups and [N] booked demo calls in [N] weeks. Product demo videos took X impressions from 10k to 200k in 45 days and brought inbound leads from robotics founders."},
+  {from:"Built programmatic SEO systems",to:"Built a programmatic SEO system of [N] pages that brought [N] organic signups a month at [AlgoTest]. Fill in from Search Console and your signup data."}],
+ carries:"Your outcome-based CV and funnel vocabulary are used in every sprint after this. The SEO and AEO report also works for Vercel and Replit later."},
+
+{id:"google",n:"Google",span:"Week 2 · Mon 19 – Sat 24 Oct",start:"2026-10-19",
+ why:"You meet the hard bar (4+ years in growth, brand or social marketing) and the role is in India. The gaps are measurement, SQL and Google's interview format.",
+ roles:[{t:"Product Marketing Manager, India Marketing",r:R.googlePmm,loc:"Gurugram, Mumbai or Bengaluru",main:true}],
+ reqs:[
+  {id:"g-years",t:"4 years in growth, product, brand or social marketing",have:"5 years",s:"have",fix:"Nothing to fix. Say it plainly in your CV summary."},
+  {id:"g-measure",t:"Advanced measurement: prove impact and optimise ROI",have:"Search Console, platform analytics",s:"partial",fix:"GA4 certification, SQL basics and one ROI model."},
+  {id:"g-partner",t:"Develop and manage co-marketing partnerships",have:"Creator brand deals, community partnerships",s:"partial",fix:"Write up one partnership as a case with numbers."},
+  {id:"g-gtm",t:"GTM strategy: positioning, launches, research and insights",have:"Drift launch work",s:"partial",fix:"Build a full GTM plan for a Google product in India."},
+  {id:"g-interview",t:"Google interview: marketing case and behavioural questions",have:"No prep yet",s:"missing",fix:"Prepare 6 stories and practise 2 cases."}],
+ days:[
+  {d:"Mon 19 Oct",date:"2026-10-19",focus:"Measurement foundations",tasks:[
+   {id:"g-1a",t:"Get the Google Analytics certification",h:"4–5 h",how:"Do the GA4 course on Skillshop, then the exam. Use the Loves Data guide to know what's tested. Ask Claude to explain any report you don't understand using an example.",res:[R.skillshop,R.ga4guide],why:["g-measure"],done:"Certificate on your LinkedIn."}]},
+  {d:"Tue 20 Oct",date:"2026-10-20",focus:"SQL, enough to read and check numbers",tasks:[
+   {id:"g-2a",t:"Kaggle Intro to SQL",h:"3 h",how:"Do the lessons in order. Before each exercise, say out loud what the query should return. Let Claude explain errors, but type the queries yourself.",res:[R.kaggleSql],why:["g-measure"],done:"Kaggle certificate."},
+   {id:"g-2b",t:"HackerRank SQL (Basic) certificate",h:"1 h",how:"Take it without AI help. If you fail, note which question type tripped you up, practise it, and retake.",res:[R.hackerrank],why:["g-measure"],done:"SQL (Basic) badge on your HackerRank profile."}]},
+  {d:"Wed 21 Oct",date:"2026-10-21",focus:"Positioning",tasks:[
+   {id:"g-3a",t:"Learn April Dunford's positioning method",h:"2 h",how:"Read the key chapters of Obviously Awesome (or ask Claude for a summary of the 5 components, then check it against the book). Fill her canvas for Gemini in India.",res:[],why:["g-gtm"],done:"A 1-page positioning canvas for Gemini in India."}]},
+  {d:"Thu 22 Oct",date:"2026-10-22",focus:"Build the project for Google",tasks:[
+   {id:"g-4a",t:"Write a GTM plan: Gemini for Indian college students",h:"3 h",how:"Insight, segment, message, channels, one co-marketing partner idea (colleges or creators) and KPIs. Use public data only and cite it.",res:[R.googlePmm],why:["g-gtm","g-partner"],done:"A 3–4 page plan on your portfolio."},
+   {id:"g-4b",t:"Build the ROI model behind it",h:"2 h",how:"In Google Sheets: spend → reach → installs → activated users → retained users → value. Claude writes the formulas; you must be able to explain each one and change an input on the spot.",res:[],why:["g-measure","g-gtm"],done:"A sheet linked from the plan, and you can walk someone through it."}]},
+  {d:"Fri 23 Oct",date:"2026-10-23",focus:"Interview prep",tasks:[
+   {id:"g-5a",t:"Learn Google's PMM interview format",h:"1 h",how:"Read the guide and list the question types.",res:[R.igao],why:["g-interview"],done:"A list of the round types and what each tests."},
+   {id:"g-5b",t:"Write 6 stories and practise 2 cases",h:"3 h",how:"Two stories each on data, partnerships and leading without authority (STAR format, with numbers). Then ask Claude to be a Google interviewer and run 2 marketing cases with you.",res:[],why:["g-interview","g-partner"],done:"6 stories written; 2 mock cases done with feedback noted."}]},
+  {d:"Sat 24 Oct",date:"2026-10-24",focus:"Referral and apply",tasks:[
+   {id:"g-6a",t:"Ask for a referral, then apply",h:"1.5 h",how:"Ask your community and founder network for anyone at Google India. Send them your GTM plan. Apply with their referral.",res:[R.googlePmm],why:["g-years","g-gtm"],done:"Application sent, with a referral if you got one."}]}],
+ project:{t:"Gemini for Indian college students: GTM plan and ROI model",ship:"A positioning canvas, a 3–4 page GTM plan and a working ROI sheet",num:"The KPIs in your plan, plus interviews it gets you"},
+ cv:[{from:"Managed brand partnerships for a creator",to:"Ran brand partnerships for creator Sony Saloni: [N] deals worth [₹N]. Add your real numbers or leave the value out."}],
+ carries:"GA4, SQL and the ROI model are used again for OpenAI. The positioning method is reused for Anthropic and OpenAI."},
+
+{id:"daytona",n:"Daytona",span:"Week 3 · Mon 26 – Sat 31 Oct",start:"2026-10-26",
+ why:"Community is your strongest skill, and Daytona is a small devtools startup that hires on proof of work. The gap is developer-specific: GitHub and the product itself.",
+ roles:[
+  {t:"Digital Community Manager",r:R.daytonaRole,loc:"NY, SF or Croatia (ask about India)",main:true},
+  {t:"Dev Community Specialist",r:{l:"Daytona jobs list",u:"https://www.fastaijobs.com/companies/daytona"},loc:"NY, SF or Croatia"}],
+ reqs:[
+  {id:"d-comm",t:"Experience running online developer or open-source communities",have:"2,000+ member marketing community, Chosen community",s:"partial",fix:"Show you can do it for developers: audit their community and give a plan."},
+  {id:"d-github",t:"Manage community across Discord, GitHub and forums",have:"Discord and social, little GitHub",s:"missing",fix:"Learn GitHub well enough to open a real pull request."},
+  {id:"d-product",t:"Answer developer questions and surface product feedback",have:"Drift developer audience",s:"partial",fix:"Use the product yourself so you can answer real questions."},
+  {id:"d-content",t:"Bonus: content creation (video, tutorials, blogs)",have:"Weekly Drift demo videos",s:"have",fix:"Make one Daytona tutorial."}],
+ days:[
+  {d:"Mon 26 Oct",date:"2026-10-26",focus:"Learn the product",tasks:[
+   {id:"d-1a",t:"Run your first Daytona sandbox",h:"2.5 h",how:"Follow the getting-started docs with Claude Code beside you. Run some AI-generated code inside a sandbox. Ask Claude why agents need sandboxes at all.",res:[R.daytonaDocs],why:["d-product"],done:"You ran a sandbox and can explain what it is and why AI agents need one in 3 sentences."}]},
+  {d:"Tue 27 Oct",date:"2026-10-27",focus:"GitHub fluency",tasks:[
+   {id:"d-2a",t:"Learn issues, pull requests and discussions",h:"1.5 h",how:"Ask Claude to walk you through a real repo: what an issue is, a PR, a review, labels, a README. Click through daytonaio/docs while it explains.",res:[R.daytonaGh],why:["d-github"],done:"You can explain the life of a PR from fork to merge."},
+   {id:"d-2b",t:"Open a real pull request to Daytona's docs",h:"1.5 h",how:"Find a typo, broken link or unclear step in their docs. Fork, fix, open a PR with a clear description. Claude Code can run the git commands; you write the description.",res:[R.daytonaGh],why:["d-github","d-product"],done:"A PR link in your notes."}]},
+  {d:"Wed 28 Oct",date:"2026-10-28",focus:"Community audit",tasks:[
+   {id:"d-3a",t:"Audit Daytona's community",h:"3 h",how:"Join their Discord and watch GitHub issues. Log 20 questions: topic, time to first reply, answered or not. Note the top 3 requests.",res:[],why:["d-comm","d-product"],done:"An audit doc with 5 recommendations."}]},
+  {d:"Thu 29 Oct",date:"2026-10-29",focus:"Build the project for Daytona",tasks:[
+   {id:"d-4a",t:"Write a 90-day community plan",h:"2.5 h",how:"Ambassador program, office hours or AMAs, content calendar, and 4 metrics (time to first reply, weekly active members, contributors, events). Read swyx's post first for how devtools companies think about this.",res:[R.dxtips],why:["d-comm"],done:"A 2-page plan."},
+   {id:"d-4b",t:"Make one tutorial",h:"2.5 h",how:"Blog or 3-minute video: 'Run Claude-generated code safely in a Daytona sandbox'. Use what you built on Monday.",res:[R.daytonaDocs],why:["d-content","d-product"],done:"Tutorial published."}]},
+  {d:"Fri 30 Oct",date:"2026-10-30",focus:"Prove you can answer developers",tasks:[
+   {id:"d-5a",t:"Answer 3 real questions in their community",h:"2 h",how:"Pick 3 unanswered questions from your audit. Test the answer yourself in a sandbox before posting. Claude can help you debug.",res:[],why:["d-product","d-comm"],done:"3 helpful answers posted, linked in your notes."}]},
+  {d:"Sat 31 Oct",date:"2026-10-31",focus:"Apply",tasks:[
+   {id:"d-6a",t:"Email careers@daytona.io",h:"1 h",how:"Subject: Digital Community Manager. Include the 90-day plan, your PR, the tutorial and the 3 answers. Ask if remote from India is possible.",res:[R.daytonaRole],why:["d-comm","d-github","d-content"],done:"Email sent."}]}],
+ project:{t:"Daytona community audit and 90-day plan",ship:"An audit, a plan, a docs PR, a tutorial and 3 real answers",num:"Replies, tutorial views, PR merged or not"},
+ cv:[{from:"Run a marketing community of 2,000+ members",to:"Built and run a marketing community of 2,000+ members (200+ founders): [N]% active monthly, [N] events, [N] intros that led to hires or deals."}],
+ carries:"GitHub, tutorials and community audits are reused for MongoDB, Anthropic and OpenAI."},
+
+{id:"mongodb",n:"MongoDB",span:"Weeks 4–5 · Mon 2 – Sat 14 Nov",start:"2026-11-02",
+ why:"The community role is in India and asks for 3–5 years. The gap is MongoDB itself and AI concepts like vector search, which you'll need for Anthropic and OpenAI anyway.",
+ roles:[
+  {t:"Senior Community Manager",r:R.mongoRole,loc:"Gurugram or remote India",main:true},
+  {t:"Senior Developer Advocate (stretch)",r:R.mongoDa,loc:"Remote India"}],
+ reqs:[
+  {id:"m-groups",t:"Track record building user group and developer community programs",have:"Your own community, Chosen",s:"partial",fix:"Plan and run a real meetup for developers."},
+  {id:"m-years",t:"3–5 years in developer community management or DevRel",have:"5 years in community and growth, not developer-specific",s:"partial",fix:"Frame your developer work (Drift, AlgoTest) clearly."},
+  {id:"m-product",t:"Familiarity with MongoDB and its developer ecosystem",have:"None yet",s:"missing",fix:"Skill badges and a working app on Atlas."},
+  {id:"m-ai",t:"Gen AI: vector search and RAG on MongoDB",have:"None yet",s:"missing",fix:"Build a small RAG app and write the tutorial."},
+  {id:"m-metrics",t:"Track and analyse community engagement metrics",have:"Community growth numbers",s:"partial",fix:"A metrics framework with definitions."}],
+ days:[
+  {d:"Mon 2 Nov",date:"2026-11-02",focus:"MongoDB basics",tasks:[
+   {id:"m-1a",t:"Data modelling skill badge",h:"1.5 h",how:"Do the free data modelling badge on MongoDB University.",res:[R.mongoSkills],why:["m-product"],done:"Badge earned."},
+   {id:"m-1b",t:"Documents vs tables, explained with your own app",h:"1.5 h",how:"Ask Claude to compare how Nourish (Supabase, which is Postgres) would store data in MongoDB instead. Draw both.",res:[],why:["m-product"],done:"A 1-page comparison in your own words."}]},
+  {d:"Tue 3 Nov",date:"2026-11-03",focus:"Understand RAG before building it",tasks:[
+   {id:"m-2a",t:"Learn embeddings, vector search and RAG",h:"2 h",how:"Ask Claude to explain each with a library analogy, then quiz you. Draw the RAG flow: question → embed → search → retrieve → answer.",res:[R.claudePrompt],why:["m-ai"],done:"You can draw the RAG flow and explain it in 2 minutes."}]},
+  {d:"Wed 4 Nov",date:"2026-11-04",focus:"Follow MongoDB's RAG tutorial",tasks:[
+   {id:"m-3a",t:"Build the local RAG tutorial",h:"3 h",how:"Follow MongoDB's tutorial with Claude Code. When it breaks, read the error first and guess the cause before asking Claude.",res:[R.mongoRag],why:["m-ai","m-product"],done:"It runs on your machine and answers a question."}]},
+  {d:"Thu 5 Nov",date:"2026-11-05",focus:"Gen AI badges",tasks:[
+   {id:"m-4a",t:"Earn the gen AI skill badges",h:"2.5 h",how:"Pick the vector search and RAG badges on MongoDB University.",res:[R.mongoSkills],why:["m-ai"],done:"Badges on your LinkedIn."}]},
+  {d:"Fri 6 Nov",date:"2026-11-06",focus:"Start the project",tasks:[
+   {id:"m-5a",t:"Spec your 'Ask the community' RAG app",h:"2 h",how:"A chatbot that answers questions from your community's best resources (or Drift's docs), on Atlas Vector Search. Write what it does, who it's for and what done looks like, then start building with Claude Code.",res:[R.mongoRag],why:["m-ai"],done:"Spec written and the first version running."}]},
+  {d:"Mon 9 Nov",date:"2026-11-09",focus:"Ship it",tasks:[
+   {id:"m-6a",t:"Ship the app and write the tutorial",h:"4 h",how:"Deploy it. Write 'How I built a RAG app on MongoDB Atlas as a marketer' with screenshots and what went wrong.",res:[],why:["m-ai","m-product"],done:"App live and tutorial published."}]},
+  {d:"Tue 10 Nov",date:"2026-11-10",focus:"User groups",tasks:[
+   {id:"m-7a",t:"Plan a Delhi developer meetup",h:"2.5 h",how:"Research MongoDB user groups in India. Draft a Delhi meetup: date, venue, 2 speakers from your community, agenda, RSVP page.",res:[],why:["m-groups"],done:"Event plan and RSVP page ready."}]},
+  {d:"Wed 11 Nov",date:"2026-11-11",focus:"Fill the room",tasks:[
+   {id:"m-8a",t:"Invite people and confirm speakers",h:"2 h",how:"Post in your community, DM 20 developers, confirm 2 speakers. Your RAG app can be one of the demos.",res:[],why:["m-groups"],done:"20+ RSVPs and 2 speakers confirmed."}]},
+  {d:"Thu 12 Nov",date:"2026-11-12",focus:"Measure community like a business",tasks:[
+   {id:"m-9a",t:"Write a community metrics framework",h:"2 h",how:"Define 6 metrics: new members, active members, time to first reply, events run, speakers recruited, user groups launched. Say how you'd measure each and what good looks like.",res:[],why:["m-metrics"],done:"1-page framework."}]},
+  {d:"Fri 13 Nov",date:"2026-11-13",focus:"Interview stories",tasks:[
+   {id:"m-10a",t:"Write 4 community stories",h:"2 h",how:"Building from zero, a hard moment, a program that grew, a metric you moved. STAR format with numbers.",res:[],why:["m-years","m-groups"],done:"4 stories written."}]},
+  {d:"Sat 14 Nov",date:"2026-11-14",focus:"Apply",tasks:[
+   {id:"m-11a",t:"Apply and message the India DevRel team",h:"1.5 h",how:"Apply to Senior Community Manager. Message MongoDB's India developer relations people with your app, tutorial and meetup plan.",res:[R.mongoRole],why:["m-groups","m-product","m-ai"],done:"Application and 2 messages sent."}]}],
+ project:{t:"'Ask the community' RAG app on MongoDB Atlas, plus a Delhi meetup",ship:"A live app, a tutorial and a meetup with RSVPs",num:"Users, questions answered, RSVPs and attendance"},
+ cv:[{from:"(new line)",to:"Built a RAG app on MongoDB Atlas Vector Search and a tutorial for non-engineers: [N] readers, [N] users. Organised a Delhi developer meetup with [N] RSVPs."}],
+ carries:"RAG and vector search are used again for Anthropic and OpenAI. The meetup playbook is reused for OpenAI India."},
+
+{id:"anthropic",n:"Anthropic",span:"Weeks 6–7 · Mon 16 – Sat 28 Nov",start:"2026-11-16",
+ why:"By now you have SQL, GitHub, RAG and outcome numbers. This sprint adds Claude Code, the Claude API and MCP, which is exactly what the developer campaign role markets.",
+ roles:[
+  {t:"Developer Campaign Marketer (Claude Code, startups)",r:R.anthDcm,loc:"US",main:true},
+  {t:"Community Marketing Lead",r:R.anthCml,loc:"SF / NYC"}],
+ reqs:[
+  {id:"a-launch",t:"Success launching and marketing developer tools, CLI tools or APIs",have:"Drift: a CLI AI agent, growth from scratch",s:"partial",fix:"Retell Drift as a developer tool launch with outcomes."},
+  {id:"a-product",t:"Deep knowledge of Claude Code, the API and MCP",have:"You use Claude daily",s:"partial",fix:"Anthropic Academy courses plus an MCP server you built."},
+  {id:"a-metrics",t:"Track developer metrics and use data to optimise campaigns",have:"SQL and GA4 from Google sprint",s:"partial",fix:"A developer funnel and campaign measurement plan."},
+  {id:"a-campaign",t:"Translate positioning into executable campaign plans",have:"Positioning method from Google sprint",s:"partial",fix:"A full campaign plan for Claude Code in India."},
+  {id:"a-library",t:"Community role: a use-case library with working demos and linked repos",have:"Your community of builders",s:"missing",fix:"Build that library from your community."}],
+ days:[
+  {d:"Mon 16 Nov",date:"2026-11-16",focus:"Claude Code",tasks:[
+   {id:"a-1a",t:"Claude Code in Action (Anthropic Academy)",h:"3 h",how:"Do the course and its final assessment.",res:[R.anthAcademy],why:["a-product"],done:"Certificate."}]},
+  {d:"Tue 17 Nov",date:"2026-11-17",focus:"Claude API",tasks:[
+   {id:"a-2a",t:"Building with the Claude API, first half",h:"4 h",how:"Focus on messages, system prompts and tool use. After each module, explain it back to Claude and ask it to correct you.",res:[R.anthAcademy,R.claudePrompt],why:["a-product"],done:"You can explain tool use to a developer in 2 minutes."}]},
+  {d:"Wed 18 Nov",date:"2026-11-18",focus:"MCP",tasks:[
+   {id:"a-3a",t:"Introduction to MCP and the DeepLearning.AI MCP course",h:"3.5 h",how:"Do Anthropic's intro, then the 1 h 38 min DeepLearning.AI course.",res:[R.anthAcademy,R.dlaiMcp],why:["a-product"],done:"Both done, and you can explain why MCP exists."}]},
+  {d:"Thu 19 Nov",date:"2026-11-19",focus:"Build the project for Anthropic",tasks:[
+   {id:"a-4a",t:"Build an MCP server for marketers",h:"4 h",how:"Connect Claude to a tool marketers use, such as Search Console. You write the spec; Claude Code builds it; you test it on your own data.",res:[R.dlaiMcp],why:["a-product","a-launch"],done:"It works on your own account."}]},
+  {d:"Fri 20 Nov",date:"2026-11-20",focus:"Launch it like a developer tool",tasks:[
+   {id:"a-5a",t:"README, tutorial and a 60-second demo",h:"4 h",how:"Write the README a stranger can follow, a tutorial post and a short demo video. Post it on X, LinkedIn and relevant communities.",res:[],why:["a-launch"],done:"Repo public and launch posts live."}]},
+  {d:"Mon 23 Nov",date:"2026-11-23",focus:"Measure the launch",tasks:[
+   {id:"a-6a",t:"Report your launch with real numbers",h:"2 h",how:"Stars, installs, tutorial reads, replies. Write what you'd change next time.",res:[],why:["a-metrics","a-launch"],done:"A short launch report."}]},
+  {d:"Tue 24 Nov",date:"2026-11-24",focus:"Use-case library",tasks:[
+   {id:"a-7a",t:"Collect 10 real Claude builds from your community",h:"3 h",how:"Ask members for projects built with Claude. Each entry gets a demo, a repo link and 3 lines on the result.",res:[R.anthCml],why:["a-library"],done:"10 entries collected."}]},
+  {d:"Wed 25 Nov",date:"2026-11-25",focus:"Publish the library",tasks:[
+   {id:"a-8a",t:"Publish the library as a site",h:"3 h",how:"Claude Code builds a simple site from your entries; you write the intro and the stories.",res:[],why:["a-library"],done:"Library live with 10 projects."}]},
+  {d:"Thu 26 Nov",date:"2026-11-26",focus:"Campaign plan",tasks:[
+   {id:"a-9a",t:"Plan a Claude Code campaign for Indian startups",h:"3 h",how:"Audience, message, channels, events, content, and a developer funnel: signup → first successful run → weekly active → paid. Set a target for each stage.",res:[R.anthDcm],why:["a-campaign","a-metrics"],done:"A 2-page campaign plan with targets."}]},
+  {d:"Fri 27 Nov",date:"2026-11-27",focus:"Tell the story",tasks:[
+   {id:"a-10a",t:"Write 'A marketer builds an MCP server'",h:"2 h",how:"What you built, what broke, what you learned. Storyteller-first.",res:[],why:["a-launch","a-library"],done:"Post published."}]},
+  {d:"Sat 28 Nov",date:"2026-11-28",focus:"Apply",tasks:[
+   {id:"a-11a",t:"Apply to both roles",h:"1.5 h",how:"Developer Campaign Marketer: lead with the MCP launch and campaign plan. Community Marketing Lead: lead with the library. Anthropic sponsors visas; also watch for roles at its Bengaluru office.",res:[R.anthDcm,R.anthCml],why:["a-launch","a-library","a-campaign"],done:"Both applications sent."}]}],
+ project:{t:"MCP server for marketers, plus a built-with-Claude library",ship:"A public repo, a launch, a 10-project library and a campaign plan",num:"Stars, installs, library visitors and submissions"},
+ cv:[{from:"Fractional growth lead at Drift",to:"Fractional growth lead at Drift (Antler), a CLI AI agent for robotics simulation: launched to developers from zero, [N] signups and [N] demo calls in 4 months."}],
+ carries:"MCP, the Claude API and campaign planning are reused for OpenAI."},
+
+{id:"openai",n:"OpenAI",span:"Weeks 8–9 · Mon 30 Nov – Sat 12 Dec",start:"2026-11-30",
+ why:"The hardest bar (10+ years for the India lead), so you arrive with everything built in sprints 1–5 plus a live India developer program. Go in through people as well as the portal.",
+ roles:[
+  {t:"Developer Marketing Lead, India",r:R.oaiDml,loc:"India, remote",main:true},
+  {t:"Growth Marketing Manager, SMB Ads",r:R.oaiGrowth,loc:"San Francisco"}],
+ reqs:[
+  {id:"o-india",t:"India developer programs: events, hackathons, workshops, builder stories",have:"Delhi meetup from MongoDB sprint",s:"partial",fix:"Run an OpenAI-focused builder workshop and publish builder stories."},
+  {id:"o-api",t:"Experience with AI, APIs and developer platforms",have:"Claude API, MCP, RAG from earlier sprints",s:"partial",fix:"Build with the OpenAI API and Codex too."},
+  {id:"o-growth",t:"Growth role: experiments across acquisition, activation and lifecycle",have:"SQL, GA4, funnel words",s:"partial",fix:"Write real experiment specs."},
+  {id:"o-years",t:"10+ years in developer marketing (India lead)",have:"5 years",s:"missing",fix:"Can't be learned. Go through referrals and a strong 90-day plan."},
+  {id:"o-xfn",t:"Works with DevRel, product marketing, partnerships",have:"Startup cross-team work",s:"have",fix:"Show it in your 90-day plan."}],
+ days:[
+  {d:"Mon 30 Nov",date:"2026-11-30",focus:"OpenAI platform",tasks:[
+   {id:"o-1a",t:"Make your first OpenAI API call and try Codex",h:"3 h",how:"Follow the developer quickstart, then Codex's getting-started page. Compare it with Claude Code in a short note.",res:[R.oaiDev,R.codex],why:["o-api"],done:"A working call and a 1-page comparison."}]},
+  {d:"Tue 1 Dec",date:"2026-12-01",focus:"Cookbook",tasks:[
+   {id:"o-2a",t:"Rebuild one Cookbook example",h:"3 h",how:"Pick a Codex example from the Cookbook and get it running. You'll demo it at your workshop.",res:[R.cookbook],why:["o-api"],done:"It runs and you can demo it."}]},
+  {d:"Wed 2 Dec",date:"2026-12-02",focus:"Experiments",tasks:[
+   {id:"o-3a",t:"Write 3 experiment specs",h:"2.5 h",how:"For OpenAI's India developer funnel: hypothesis, metric, audience, how long, how you'll read the result. Ask Claude to challenge each one.",res:[R.lenny],why:["o-growth"],done:"3 specs written."}]},
+  {d:"Thu 3 Dec",date:"2026-12-03",focus:"Builder stories",tasks:[
+   {id:"o-4a",t:"Interview 3 Indian builders using OpenAI",h:"3 h",how:"Find them in your community. 20-minute calls: what they built, why OpenAI, what was hard.",res:[],why:["o-india"],done:"3 interviews recorded or noted."}]},
+  {d:"Fri 4 Dec",date:"2026-12-04",focus:"Publish the stories",tasks:[
+   {id:"o-5a",t:"Publish 3 builder stories",h:"3 h",how:"Short posts with each builder's demo. Tag them so they reshare.",res:[],why:["o-india"],done:"3 stories live."}]},
+  {d:"Mon 7 Dec",date:"2026-12-07",focus:"Workshop prep",tasks:[
+   {id:"o-6a",t:"Plan a builder workshop in Delhi",h:"3 h",how:"Reuse your MongoDB meetup playbook. Agenda: 'Build your first agent with the OpenAI API and Codex', with your Cookbook demo.",res:[],why:["o-india"],done:"Venue, agenda and RSVP page ready."}]},
+  {d:"Tue 8 Dec",date:"2026-12-08",focus:"Fill the room",tasks:[
+   {id:"o-7a",t:"Invite 40 developers",h:"2 h",how:"Your community, colleges, previous meetup attendees.",res:[],why:["o-india"],done:"30+ RSVPs."}]},
+  {d:"Wed 9 Dec",date:"2026-12-09",focus:"Run it",tasks:[
+   {id:"o-8a",t:"Run the workshop",h:"4 h",how:"Run it, record attendance and what people shipped. Collect 3 quotes.",res:[],why:["o-india"],done:"Workshop done, numbers recorded."}]},
+  {d:"Thu 10 Dec",date:"2026-12-10",focus:"The 90-day plan",tasks:[
+   {id:"o-9a",t:"Write an India developer marketing 90-day plan",h:"3 h",how:"Audiences, cities, channels, launches, partners and metrics. Use your workshop and builder stories as proof that you can do it.",res:[R.oaiDml],why:["o-india","o-xfn","o-years"],done:"A 3-page plan."}]},
+  {d:"Fri 11 Dec",date:"2026-12-11",focus:"Interview practice",tasks:[
+   {id:"o-10a",t:"Mock interview with Claude",h:"2 h",how:"Ask Claude to be OpenAI's hiring manager: a developer marketing case for India and questions on your 90-day plan.",res:[],why:["o-india","o-growth"],done:"2 mocks done and feedback noted."}]},
+  {d:"Sat 12 Dec",date:"2026-12-12",focus:"Apply through people",tasks:[
+   {id:"o-11a",t:"Referral first, then apply",h:"2 h",how:"Ask your founder network for anyone at OpenAI India. Send them the 90-day plan and workshop numbers. Apply to the India role with the referral, and to the growth role with your experiment specs.",res:[R.oaiDml,R.oaiGrowth],why:["o-india","o-years","o-growth"],done:"Applications sent, with a referral if you got one."}]}],
+ project:{t:"Delhi builder workshop and India builder stories",ship:"A workshop, 3 builder stories and a 90-day India plan",num:"RSVPs, attendance, projects shipped, story reach"},
+ cv:[{from:"(new line)",to:"Ran an OpenAI API builder workshop in Delhi: [N] attendees, [N] projects shipped. Published 3 Indian builder stories with [N] combined reach."}],
+ carries:"This is the last sprint. Use everything from sprints 1–5 as proof."}
+];
+
+const SKILLS=[
+ {k:"Outcome-based CV and funnel words",in:"cognition",use:["cognition","google","daytona","mongodb","anthropic","openai"]},
+ {k:"Technical SEO",in:"cognition",use:["cognition"]},
+ {k:"AEO (AI answer engines)",in:"cognition",use:["cognition"]},
+ {k:"GA4 measurement",in:"google",use:["google","anthropic","openai"]},
+ {k:"SQL",in:"google",use:["google","mongodb","anthropic","openai"]},
+ {k:"Positioning and GTM plans",in:"google",use:["google","anthropic","openai"]},
+ {k:"GitHub and pull requests",in:"daytona",use:["daytona","mongodb","anthropic","openai"]},
+ {k:"Community audits and metrics",in:"daytona",use:["daytona","mongodb","anthropic"]},
+ {k:"Technical tutorials",in:"daytona",use:["daytona","mongodb","anthropic","openai"]},
+ {k:"Vector search and RAG",in:"mongodb",use:["mongodb","anthropic","openai"]},
+ {k:"Running developer events",in:"mongodb",use:["mongodb","openai"]},
+ {k:"Claude Code, Claude API, MCP",in:"anthropic",use:["anthropic","cognition","openai"]},
+ {k:"Developer campaign planning",in:"anthropic",use:["anthropic","openai"]},
+ {k:"OpenAI API, Codex, experiments",in:"openai",use:["openai"]}
+];
+
+const CERTS=[
+ {id:"cert-semrush-fund",n:"SEO Fundamentals",by:"Semrush Academy",cost:"Free",time:"4–5 h",sp:"cognition",u:"https://www.semrush.com/academy/",why:"Shows SEO depth for Cognition's SEO & AEO Lead. Valid 1 year."},
+ {id:"cert-semrush-tech",n:"Technical SEO",by:"Semrush Academy",cost:"Free",time:"5–6 h",sp:"cognition",u:"https://www.semrush.com/academy/",why:"Backs up 'hands-on technical SEO', the line Cognition screens for. Valid 1 year."},
+ {id:"cert-semrush-toolkit",n:"SEO Toolkit",by:"Semrush Academy",cost:"Free",time:"3–4 h",sp:"cognition",u:"https://www.semrush.com/academy/",why:"The top-rated Semrush cert for SEO work. Valid 1 year."},
+ {id:"cert-hubspot-seo",n:"SEO Certification",by:"HubSpot Academy",cost:"Free",time:"About 4 h",sp:"cognition",u:"https://academy.hubspot.com/",why:"A recognised badge for your existing SEO skill."},
+ {id:"cert-hubspot-content",n:"Content Marketing Certification",by:"HubSpot Academy",cost:"Free",time:"About 8 h",sp:"cognition",u:"https://academy.hubspot.com/",why:"Supports the Brand Marketer application and your storyteller positioning."},
+ {id:"cert-ga4",task:"g-1a",n:"Google Analytics Certification",by:"Google Skillshop",cost:"Free",time:"4–5 h",sp:"google",u:"https://skillshop.withgoogle.com/",why:"Google's own credential, and it backs up 'advanced measurement' for the PMM role."},
+ {id:"cert-gads-search",n:"Google Ads Search Certification",by:"Google Skillshop",cost:"Free",time:"3–4 h",sp:"google",u:"https://skillshop.withgoogle.com/googleads/",why:"Shows paid acquisition basics, a gap on your profile, and it's Google's own product."},
+ {id:"cert-gads-measure",n:"Google Ads Measurement Certification",by:"Google Skillshop",cost:"Free",time:"3–4 h",sp:"google",u:"https://skillshop.withgoogle.com/googleads/",why:"Pairs with GA4 to prove you can measure ROI."},
+ {id:"cert-kaggle-sql",task:"g-2a",n:"Intro to SQL",by:"Kaggle",cost:"Free",time:"About 3 h",sp:"google",u:"https://www.kaggle.com/learn/intro-to-sql",why:"Proof you can query data, which nearly every growth role now asks for."},
+ {id:"cert-hr-sql",task:"g-2b",n:"SQL (Basic)",by:"HackerRank",cost:"Free",time:"1 h test",sp:"google",u:"https://www.hackerrank.com/skills-verification",why:"A timed test taken without help, so it carries more weight than a course certificate."},
+ {id:"cert-hr-sql-int",n:"SQL (Intermediate)",by:"HackerRank",cost:"Free",time:"1 h test",sp:"google",u:"https://www.hackerrank.com/skills-verification",why:"Take it once Basic feels easy. Useful for OpenAI's growth role later."},
+ {id:"cert-hr-js",n:"JavaScript (Basic)",by:"HackerRank",cost:"Free",time:"1 h test",sp:"daytona",u:"https://www.hackerrank.com/skills-verification",why:"Shows you can read code, which developer community roles at Daytona and MongoDB look for."},
+ {id:"cert-mongo-model",task:"m-1a",n:"Data Modeling skill badge",by:"MongoDB University",cost:"Free",time:"60–90 min",sp:"mongodb",u:"https://learn.mongodb.com/skills",why:"Product knowledge MongoDB's community role asks for."},
+ {id:"cert-mongo-genai",task:"m-4a",n:"Gen AI and vector search skill badges",by:"MongoDB University",cost:"Free",time:"60–90 min each",sp:"mongodb",u:"https://learn.mongodb.com/skills",why:"Proves you understand RAG and vector search, which you'll also use for Anthropic and OpenAI."},
+ {id:"cert-anth-fluency",n:"AI Fluency: Framework & Foundations",by:"Anthropic Academy",cost:"Free",time:"Under 1 h",sp:"anthropic",u:"https://anthropic.skilljar.com/",why:"Quick first certificate from a company on your list."},
+ {id:"cert-anth-cc",task:"a-1a",n:"Claude Code in Action",by:"Anthropic Academy",cost:"Free",time:"About 3 h",sp:"anthropic",u:"https://anthropic.skilljar.com/",why:"Directly relevant to the Developer Campaign Marketer role, which markets Claude Code."},
+ {id:"cert-anth-api",task:"a-2a",n:"Building with the Claude API",by:"Anthropic Academy",cost:"Free",time:"8+ h",sp:"anthropic",u:"https://anthropic.skilljar.com/",why:"Shows real API knowledge, the line that separates you from non-technical marketers."},
+ {id:"cert-anth-mcp",task:"a-3a",n:"Introduction to Model Context Protocol",by:"Anthropic Academy",cost:"Free",time:"About 2 h",sp:"anthropic",u:"https://anthropic.skilljar.com/",why:"MCP is what your Anthropic project is built on."},
+ {id:"cert-oai-found",n:"AI Foundations",by:"OpenAI Academy",cost:"Free",time:"A few hours",sp:"openai",u:"https://academy.openai.com/public/courses/ai-foundations-juzjs",why:"OpenAI's own certificate. Worth having before you apply there."},
+ {id:"cert-oai-applied",n:"Applied AI Foundations",by:"OpenAI Academy",cost:"Free",time:"A few hours",sp:"openai",u:"https://academy.openai.com/public/courses/applied-ai-foundations-hgk7r",why:"Shows you can apply AI at work, not just use ChatGPT."},
+ {id:"cert-oai-agents",n:"Agents and Workflows",by:"OpenAI Academy",cost:"Free",time:"A few hours",sp:"openai",u:"https://academy.openai.com/public/courses/agents-and-workflows-bieml",why:"Matches the agent-building content OpenAI's developer team wants."}
+];
+const OVER=[
+ {n:"Microsoft Azure AI Fundamentals (AI-901)",cost:"About $99, roughly ₹3,700 or more",note:"Over budget. Microsoft Virtual Training Days have reportedly given 50% off, which would bring it near ₹1,850. Check before booking.",u:"https://mscertquiz.com/blog/microsoft-certification-exam-cost-2026"},
+ {n:"Meta Certified Digital Marketing Associate",cost:"About $99",note:"Over budget. Only worth it if you target Meta or paid roles.",u:"https://markampus.com/blog/meta-blueprint-certification-cost-2026/"},
+ {n:"AWS Certified AI Practitioner",cost:"$100",note:"Over budget. Revisit if you go after AWS developer advocate roles.",u:"https://aws.amazon.com/certification/certified-ai-practitioner/"}
+];
+const TASKS=[];const REQ={};
+SPRINTS.forEach(s=>{s.reqs.forEach(r=>REQ[r.id]={...r,sprint:s.id});s.days.forEach(d=>d.tasks.forEach(t=>TASKS.push({...t,sprint:s.id,day:d})))});
+const TASK=Object.fromEntries(TASKS.map(t=>[t.id,t]));
+const SP=Object.fromEntries(SPRINTS.map(s=>[s.id,s]));
+const certKey=c=>c.task||c.id;
+const CERTID=Object.fromEntries(CERTS.map(c=>[certKey(c),c]));
+const VIEWS=["today","connect","gaps","certs"];
+function certHTML(c){
+  const k=certKey(c);const v=st(k);const hasNotes=(v.understood||"").trim()||(v.gap||"").trim();
+  const linked=c.task&&TASK[c.task]?`<div class="note">Also a task on ${esc(TASK[c.task].day.d)} in the ${esc(SP[c.sp].n)} sprint. Ticking either one ticks both.</div>`:"";
+  return `<div class="task${v.done?" done":""}" data-id="${k}">
+  <input type="checkbox" id="cc-${k}" ${v.done?"checked":""} aria-label="Earned: ${esc(c.n)}">
+  <div class="main">
+   <label class="tt" for="cc-${k}">${esc(c.n)} <span class="chip">${esc(c.by)}</span> <span class="chip s-have">${esc(c.cost)}</span> <span class="chip">${esc(c.time)}</span></label>
+   <div class="how">${esc(c.why)}</div>
+   <div class="row res"><span class="lbl">Get it</span><a href="${c.u}" target="_blank" rel="noopener">${esc(c.by)}</a></div>
+   ${linked}
+  </div>
+  <details class="notes"${hasNotes?" open":""}><summary>Notes <span class="flag" data-flag>${flagText(v)}</span></summary>
+   <div class="fields">
+    <label for="cu-${k}">What I've understood<textarea id="cu-${k}" data-f="understood" placeholder="In my own words…">${esc(v.understood)}</textarea></label>
+    <label class="g" for="cg-${k}">The gap I still feel<textarea id="cg-${k}" data-f="gap" placeholder="What still feels fuzzy…">${esc(v.gap)}</textarea></label>
+   </div>
+  </details>
+ </div>`;
+}
+function refreshCertCounts(){if(view==="certs"){const y=window.scrollY;render();window.scrollTo(0,y)}else nav()}
+function certsDone(list){return list.filter(c=>st(certKey(c)).done).length}
+function certsView(){
+  return `<div style="display:grid;gap:16px">
+  <section class="panel"><div class="eyebrow">Free, all of them</div><h2>Certificates for LinkedIn</h2>
+   <p class="sub" style="margin:0">${CERTS.length} certificates, each placed in the sprint where it helps your application. All are free. Earn them during that sprint's week, so the badge is on your profile before you apply.</p>
+   <div><b>How to add one to LinkedIn</b></div>
+   <ol style="margin:0;padding-left:20px;display:grid;gap:4px">
+    <li>On your profile, click <b>Add profile section → Recommended → Add licenses &amp; certifications</b>.</li>
+    <li>Use the exact certificate name and the issuer's official LinkedIn page as the issuing organisation (Google, HubSpot, Anthropic and so on).</li>
+    <li>Add the issue date, plus the credential ID or URL if the issuer gives one. A link people can click is far more convincing than a name alone.</li>
+    <li>Add 2–3 skills to it (SEO, SQL, Google Analytics) so it shows up in recruiter searches.</li>
+    <li>For the ones that matter most (Anthropic, OpenAI, Google), write a short post about what you learned and what you built with it.</li>
+   </ol></section>
+  ${SPRINTS.map(s=>{const list=CERTS.filter(c=>c.sp===s.id);if(!list.length)return "";return `<section class="panel"><div class="eyebrow">${esc(s.span)}</div><h3>${esc(s.n)} sprint · ${certsDone(list)} of ${list.length} earned</h3>${list.map(certHTML).join("")}</section>`}).join("")}
+  <section class="panel"><h3>Over your ₹3,000 budget: skip for now</h3>
+   <div class="tablebox"><table><thead><tr><th>Certificate</th><th>Cost</th><th>Note</th></tr></thead><tbody>${OVER.map(o=>`<tr><td><a href="${o.u}" target="_blank" rel="noopener">${esc(o.n)}</a></td><td>${esc(o.cost)}</td><td>${esc(o.note)}</td></tr>`).join("")}</tbody></table></div></section>
+ </div>`;
+}
+const S={};const timers={};let mode="pending",db=null,readOnly=false;
+const $=q=>document.querySelector(q);
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const st=id=>S[id]||(S[id]={done:false,understood:"",gap:""});
+const statusLabel={have:"Have it",partial:"Partial",missing:"Missing",closed:"Closed"};
+
+function todayISO(){const n=new Date();return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,"0")}-${String(n.getDate()).padStart(2,"0")}`}
+const TODAY=todayISO();
+function reqProgress(rid){const ts=TASKS.filter(t=>t.why.includes(rid));const d=ts.filter(t=>st(t.id).done).length;return{d,n:ts.length}}
+function reqStatus(rid){const r=REQ[rid];const p=reqProgress(rid);return p.n&&p.d===p.n?"closed":r.s}
+function sprintProgress(sid){const ts=TASKS.filter(t=>t.sprint===sid);const d=ts.filter(t=>st(t.id).done).length;return{d,n:ts.length}}
+
+function taskHTML(t,showCo){
+  const v=st(t.id);const hasNotes=(v.understood||"").trim()||(v.gap||"").trim();
+  return `<div class="task${v.done?" done":""}" data-id="${t.id}">
+  <input type="checkbox" id="c-${t.id}" ${v.done?"checked":""} aria-label="Done: ${esc(t.t)}">
+  <div class="main">
+   ${showCo?`<div class="co">${esc(SP[t.sprint].n)} · ${esc(t.day.d)}</div>`:""}
+   <label class="tt" for="c-${t.id}">${esc(t.t)} <span class="chip">${esc(t.h)}</span></label>
+   <div class="how">${esc(t.how)}</div>
+   ${t.res.length?`<div class="row res"><span class="lbl">Use</span>${t.res.map(r=>`<a href="${r.u}" target="_blank" rel="noopener">${esc(r.l)}</a>`).join("")}</div>`:""}
+   <div class="row closes"><span class="lbl">Closes</span>${t.why.map(w=>`<span class="chip s-${reqStatus(w)}" data-req="${w}">${esc(REQ[w].t)}</span>`).join("")}</div>
+   <div class="donewhen"><span class="lbl">Done when</span> ${esc(t.done)}</div>
+  </div>
+  <details class="notes"${hasNotes?" open":""}><summary>Notes <span class="flag" data-flag>${flagText(v)}</span></summary>
+   <div class="fields">
+    <label for="u-${t.id}">What I've understood<textarea id="u-${t.id}" data-f="understood" placeholder="In my own words…">${esc(v.understood)}</textarea></label>
+    <label class="g" for="g-${t.id}">The gap I still feel<textarea id="g-${t.id}" data-f="gap" placeholder="What still feels fuzzy, or what I couldn't do without help…">${esc(v.gap)}</textarea></label>
+   </div>
+  </details>
+ </div>`;
+}
+function flagText(v){const a=[];if((v.understood||"").trim())a.push("understood noted");if((v.gap||"").trim())a.push("gap noted");return a.join(" · ")}
+
+function reqTable(s){
+  return `<div class="tablebox"><table><thead><tr><th>They screen for</th><th>Your proof today</th><th>Status</th><th>How this sprint closes it</th></tr></thead><tbody>${s.reqs.map(r=>{const p=reqProgress(r.id);const k=reqStatus(r.id);return `<tr data-reqrow="${r.id}"><td><b>${esc(r.t)}</b></td><td>${esc(r.have)}</td><td><span class="chip s-${k}" data-reqchip="${r.id}">${statusLabel[k]}</span><span class="prog" data-reqprog="${r.id}">${p.n?`${p.d} of ${p.n} tasks done`:"No task needed"}</span></td><td>${esc(r.fix)}</td></tr>`}).join("")}</tbody></table></div>`;
+}
+
+function sprintView(s){
+  const idx=SPRINTS.indexOf(s)+1;
+  return `<div style="display:grid;gap:16px">
+  <section class="panel head"><div class="eyebrow">Sprint ${idx} of 6 · ${esc(s.span)}</div><h2>${esc(s.n)}</h2><p class="sub" style="margin:0">${esc(s.why)}</p>
+   <div class="roles">${s.roles.map(r=>`<div class="role${r.main?" main":""}"><div class="t">${esc(r.t)}</div><div>${r.main?`<span class="chip main">Main target</span> `:""}<span class="chip">${esc(r.loc)}</span></div><a href="${r.r.u}" target="_blank" rel="noopener">Read the job posting</a></div>`).join("")}</div></section>
+  <section class="panel"><h3>1 · What they screen for, and where you stand</h3><p class="note" style="margin:0">Status turns to Closed once every task linked to that line is ticked.</p>${reqTable(s)}</section>
+  <section class="panel"><h3>2 · Day by day</h3>${s.days.map(d=>`<div class="day"><div class="dayhead"><span class="chip date${d.date===TODAY?" today":""}">${d.date===TODAY?"Today · ":""}${esc(d.d)}</span><b>${esc(d.focus)}</b></div>${d.tasks.map(t=>taskHTML(t,false)).join("")}</div>`).join("")}</section>
+  ${CERTS.some(c=>c.sp===s.id)?`<section class="panel"><h3>Certificates to add to LinkedIn this sprint</h3><p class="note" style="margin:0">All free. <a href="#certs" data-go="certs">See all certificates and how to add them</a></p>${CERTS.filter(c=>c.sp===s.id).map(certHTML).join("")}</section>`:""}
+  <section class="panel"><h3>3 · The project you'll show them</h3><div><b>${esc(s.project.t)}</b></div><div><span class="note">What you ship:</span> ${esc(s.project.ship)}</div><div><span class="note">Number to report:</span> ${esc(s.project.num)}</div></section>
+  <section class="panel"><h3>4 · CV lines to rewrite</h3><p class="note" style="margin:0">Replace every [N] with a real number from your data. If you don't have the number, leave that part out rather than guess.</p><div class="cv">${s.cv.map(c=>`<div class="cvrow"><div class="from">${esc(c.from)}</div><div class="arrow">→</div><div>${esc(c.to)}</div></div>`).join("")}</div></section>
+  <section class="panel"><h3>5 · What this sprint gives the next ones</h3><p style="margin:0">${esc(s.carries)}</p>${SPRINTS.indexOf(s)<SPRINTS.length-1?`<p style="margin:0"><a href="#${SPRINTS[SPRINTS.indexOf(s)+1].id}" data-go="${SPRINTS[SPRINTS.indexOf(s)+1].id}">Next sprint: ${esc(SPRINTS[SPRINTS.indexOf(s)+1].n)} →</a></p>`:""}</section>
+ </div>`;
+}
+
+function todayView(){
+  let day=null,sp=null;
+  for(const s of SPRINTS)for(const d of s.days)if(d.date===TODAY){day=d;sp=s}
+  let lead="";
+  if(!day){
+    const all=SPRINTS.flatMap(s=>s.days.map(d=>({d,s})));
+    const next=all.find(x=>x.d.date>TODAY);
+    if(next){day=next.d;sp=next.s;lead=TODAY<all[0].d.date?"The plan starts soon. Here's day one.":"No tasks today. Here's the next working day."}
+    else return `<section class="panel"><h2>All sprints are behind you</h2><p class="sub">Pick any sprint above to finish what's left.</p></section>`;
+  }
+  const open=TASKS.filter(t=>!st(t.id).done&&t.day.date<day.date);
+  return `<div style="display:grid;gap:16px"><section class="panel"><div class="eyebrow">${esc(sp.n)} sprint · ${esc(day.d)}</div><h2>${esc(day.focus)}</h2>${lead?`<p class="sub" style="margin:0">${lead}</p>`:""}
+  <p class="note" style="margin:0">Why this matters: these tasks close gaps for the ${esc(sp.roles.find(r=>r.main).t)} role at ${esc(sp.n)}. <a href="#${sp.id}" data-go="${sp.id}">Open the full ${esc(sp.n)} sprint</a></p>
+  ${day.tasks.map(t=>taskHTML(t,false)).join("")}</section>
+  ${open.length?`<section class="panel"><h3>Still open from earlier days (${open.length})</h3>${open.map(t=>taskHTML(t,true)).join("")}</section>`:""}</div>`;
+}
+
+function connectView(){
+  return `<section class="panel"><h2>How it connects</h2><p class="sub" style="margin:0">Each skill is learned once, in one sprint, then reused. <span class="learn" style="display:inline-block;background:var(--accent);color:var(--surface);border-radius:999px;padding:0 8px;font-size:11px">Learn</span> marks where you learn it; ● marks where it counts as proof.</p>
+  <div class="tablebox"><table class="matrix"><thead><tr><th>Skill</th>${SPRINTS.map(s=>`<th class="c">${esc(s.n)}</th>`).join("")}</tr></thead><tbody>${SKILLS.map(k=>`<tr><td>${esc(k.k)}</td>${SPRINTS.map(s=>`<td class="c">${k.in===s.id?`<span class="learn">Learn</span>`:k.use.includes(s.id)?`<span class="use" aria-label="used">●</span>`:""}</td>`).join("")}</tr>`).join("")}</tbody></table></div></section>`;
+}
+
+function gapsView(){
+  const rows=TASKS.filter(t=>(st(t.id).gap||"").trim());
+  if(!rows.length)return `<section class="panel"><h2>My gaps</h2><div class="empty">No gaps written yet. Open Notes on any task and fill in "The gap I still feel". They'll collect here, grouped by company.</div></section>`;
+  return `<section class="panel"><h2>My gaps</h2>${SPRINTS.filter(s=>rows.some(t=>t.sprint===s.id)).map(s=>`<h3>${esc(s.n)}</h3>${rows.filter(t=>t.sprint===s.id).map(t=>{const v=st(t.id);return `<div class="gapcard"><b>${esc(t.t)}</b><div class="g">${esc(v.gap)}</div>${(v.understood||"").trim()?`<div class="u">Understood: ${esc(v.understood)}</div>`:""}</div>`}).join("")}`).join("")}</section>`;
+}
+
+let view="today";
+function nav(){
+  const items=[{id:"today",k:"Start here",n:"Today"},...SPRINTS.map((s,i)=>({id:s.id,k:`Sprint ${i+1} · ${s.span.split(" · ")[0]}`,n:s.n,sp:true})),{id:"certs",k:"LinkedIn",n:"Certificates",x:1,c:1},{id:"connect",k:"Map",n:"How it connects",x:1},{id:"gaps",k:"Notes",n:"My gaps",x:1}];
+  $("#nav").innerHTML=items.map(it=>{let p="";if(it.c){p=`<span class="p">${certsDone(CERTS)} of ${CERTS.length} earned</span>`}if(it.sp){const q=sprintProgress(it.id);p=`<span class="p">${q.d} of ${q.n} tasks</span><span class="mini"><i style="width:${Math.round(100*q.d/q.n)}%"></i></span>`}return `<button type="button" id="nav-${it.id}" data-go="${it.id}" class="${it.x?"extra":""}" aria-pressed="${view===it.id}"><span class="k">${esc(it.k)}</span><span class="n">${esc(it.n)}</span>${p}</button>`}).join("");
+}
+function overall(){
+  const d=TASKS.filter(t=>st(t.id).done).length,n=TASKS.length;
+  const cur=SPRINTS.find(s=>s.days.some(x=>x.date>=TODAY))||SPRINTS[SPRINTS.length-1];
+  $("#overall").innerHTML=`<div class="big">${d}<small> of ${n} tasks done</small></div><div class="bar"><i style="width:${Math.round(100*d/n)}%"></i></div><div class="note">Current sprint: <b>${esc(cur.n)}</b> · ${esc(cur.span)}</div>`;
+}
+function render(){
+  const v=$("#view");
+  if(view==="today")v.innerHTML=todayView();
+  else if(view==="connect")v.innerHTML=connectView();
+  else if(view==="gaps")v.innerHTML=gapsView();
+  else if(view==="certs")v.innerHTML=certsView();
+  else v.innerHTML=sprintView(SP[view]);
+  nav();overall();
+}
+function go(id){if(!(VIEWS.includes(id)||SP[id]))id="today";view=id;render();try{history.replaceState(null,"","#"+id)}catch(e){}try{localStorage.setItem("ftg-view",id)}catch(e){}window.scrollTo({top:0})}
+document.addEventListener("click",e=>{const b=e.target.closest("[data-go]");if(b){e.preventDefault();go(b.dataset.go)}});
+
+function refreshMeta(){
+  document.querySelectorAll("[data-reqchip]").forEach(c=>{const k=reqStatus(c.dataset.reqchip);c.className=`chip s-${k}`;c.textContent=statusLabel[k];const p=reqProgress(c.dataset.reqchip);const pe=document.querySelector(`[data-reqprog="${c.dataset.reqchip}"]`);if(pe&&p.n)pe.textContent=`${p.d} of ${p.n} tasks done`});
+  document.querySelectorAll(".closes [data-req]").forEach(c=>{c.className=`chip s-${reqStatus(c.dataset.req)}`});
+  nav();overall();
+}
+function paintTask(id){
+  const v=st(id);
+  document.querySelectorAll(`.task[data-id="${id}"]`).forEach(el=>{
+    el.classList.toggle("done",!!v.done);
+    const cb=el.querySelector("input[type=checkbox]");if(cb)cb.checked=!!v.done;
+    ["understood","gap"].forEach(f=>{const ta=el.querySelector(`[data-f="${f}"]`);if(ta&&document.activeElement!==ta&&!timers[id])ta.value=v[f]||""});
+    const fl=el.querySelector("[data-flag]");if(fl)fl.textContent=flagText(v);
+  });
+}
+const viewEl=$("#view");
+viewEl.addEventListener("change",e=>{if(e.target.type==="checkbox"){const id=e.target.closest(".task").dataset.id;st(id).done=e.target.checked;paintTask(id);refreshMeta();save(id);if(view==="certs"||SP[view])refreshCertCounts()}});
+viewEl.addEventListener("input",e=>{if(e.target.tagName==="TEXTAREA"){const id=e.target.closest(".task").dataset.id;st(id)[e.target.dataset.f]=e.target.value;const fl=e.target.closest(".task").querySelector("[data-flag]");if(fl)fl.textContent=flagText(st(id));clearTimeout(timers[id]);timers[id]=setTimeout(()=>save(id),900)}});
+viewEl.addEventListener("focusout",e=>{if(e.target.tagName==="TEXTAREA"){const id=e.target.closest(".task").dataset.id;if(timers[id]){clearTimeout(timers[id]);save(id)}}});
+
+function banner(m){const b=$("#banner");b.textContent=m||"";b.hidden=!m}
+const KEY="ftg-progress";
+function loadLocal(){try{return JSON.parse(localStorage.getItem(KEY)||"{}")||{}}catch(e){return null}}
+function save(id){
+  clearTimeout(timers[id]);delete timers[id];
+  if(readOnly)return;
+  const body={done:!!st(id).done,understood:st(id).understood||"",gap:st(id).gap||"",updatedAt:new Date().toISOString()};
+  if(mode==="db"){
+    db.doc("sprint/"+id).set(body).catch(e=>{
+      if(e&&e.code==="invalid_argument"){readOnly=true;banner("You can view this tracker but not change it.")}
+      else if(e&&e.code==="quota_exceeded")banner("Storage is full, so this change wasn't saved.");
+      else banner("Couldn't save just now. Your text is still here and will save on your next change.");
+    });
+  }else{
+    const all=loadLocal();
+    if(all===null){banner("This browser is blocking storage, so progress can't be saved. Use Export before you close the page.");return}
+    all[id]=body;try{localStorage.setItem(KEY,JSON.stringify(all));banner("")}catch(e){banner("Couldn't save in this browser. Use Export to keep a copy.")}
+  }
+}
+function applyDoc(id,v){if((!TASK[id]&&!CERTID[id])||!v)return;if(timers[id])return;S[id]={done:!!v.done,understood:String(v.understood||""),gap:String(v.gap||"")};paintTask(id)}
+
+function setupLocal(){
+  mode="local";
+  const all=loadLocal();
+  if(all===null)banner("This browser is blocking storage, so progress can't be saved. Use Export before you close the page.");
+  else Object.keys(all).forEach(id=>applyDoc(id,all[id]));
+  $("#backup").hidden=!!window.claude;
+  $("#foot").textContent="Your ticks and notes are saved only in this browser, never sent anywhere. Export now and then to back up or move to another device.";
+  render();
+}
+$("#export").addEventListener("click",()=>{
+  const items={};TASKS.forEach(t=>{const v=st(t.id);if(v.done||(v.understood||"").trim()||(v.gap||"").trim())items[t.id]={company:SP[t.sprint].n,task:t.t,...v}});CERTS.filter(c=>!c.task).forEach(c=>{const v=st(c.id);if(v.done||(v.understood||"").trim()||(v.gap||"").trim())items[c.id]={company:SP[c.sp].n,certificate:c.n,...v}});
+  const blob=new Blob([JSON.stringify({app:"fill-the-gap",version:2,exportedAt:new Date().toISOString(),items},null,2)],{type:"application/json"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=`fill-the-gap-${TODAY}.json`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+  $("#backupmsg").textContent=`Exported ${Object.keys(items).length} tasks.`;
+});
+$("#import").addEventListener("change",async e=>{
+  const f=e.target.files&&e.target.files[0];if(!f)return;
+  try{const data=JSON.parse(await f.text());const items=data&&data.items;if(!items||typeof items!=="object")throw 0;let n=0;
+    Object.entries(items).forEach(([id,v])=>{if((TASK[id]||CERTID[id])&&v){S[id]={done:!!v.done,understood:String(v.understood||""),gap:String(v.gap||"")};save(id);n++}});
+    render();$("#backupmsg").textContent=n?`Imported ${n} tasks.`:"That file had no matching tasks.";
+  }catch(err){$("#backupmsg").textContent="That file isn't a Fill the Gap export."}
+  e.target.value="";
+});
+
+let start="today";
+try{const h=(location.hash||"").slice(1);start=h||localStorage.getItem("ftg-view")||"today"}catch(e){}
+view=(VIEWS.includes(start)||SP[start])?start:"today";
+render();
+const first=SPRINTS[0].days[0].date;
+$("#when").textContent=TODAY<first?"6 company sprints · starts Mon 12 Oct 2026":"6 company sprints · 9 weeks from Mon 12 Oct 2026";
+
+(async()=>{
+  let d=null;
+  try{d=window.claude&&typeof window.claude.use==="function"?await window.claude.use("db"):null}catch(e){d=null}
+  if(!d){setupLocal();return}
+  db=d;mode="db";
+  $("#foot").textContent="Your progress is saved to your account and visible only to you and anyone you make an Editor. Ask Claude to read your notes and plan the next step.";
+  db.collection("sprint").onSnapshot(snap=>{snap.docs.forEach(doc=>{if(doc.exists)applyDoc(doc.id,doc.data())});refreshMeta();if(view==="gaps")render()},err=>{
+    if(err&&err.code==="revoked"){readOnly=true;banner("This tracker is read-only for now.")}
+    else banner("Lost the connection to your saved progress. Reload to reconnect.");
+  });
+})();
+</script>
+</body>
+</html>
