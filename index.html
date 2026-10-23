@@ -128,7 +128,7 @@ textarea:focus{outline:2px solid var(--accent);outline-offset:0;border-color:tra
 
 <div class="wrap">
   <header>
-    <div class="eyebrow" id="when">6 company sprints · starts Mon 12 Oct 2026</div>
+    <div class="eyebrow" id="when">6 company sprints · start any day</div>
     <h1>Fill the Gap</h1>
     <p class="sub">One company at a time. Each sprint starts from what the job asks for, shows what you can already prove, and gives you daily tasks that close each gap. Every task says which requirement it closes, where to learn it, and when it counts as done.</p>
   </header>
@@ -183,7 +183,7 @@ const R={
 
 const SPRINTS=[
 {id:"cognition",n:"Cognition",span:"Week 1 · Mon 12 – Sat 17 Oct",start:"2026-10-12",
- why:"Your closest match on the whole list. The SEO & AEO Lead role is your core skill (organic growth from scratch, programmatic SEO), so this week is mostly about showing proof, not learning from zero.",
+ why:"Your closest match on the whole list. The SEO & AEO Lead role is your core skill (organic growth from scratch, programmatic SEO), so this sprint is mostly about showing proof, not learning from zero.",
  roles:[
   {t:"SEO & AEO Lead",r:R.cogSeo,loc:"San Francisco, on-site",main:true},
   {t:"Brand Marketer (0–4 yrs)",r:R.cogBrand,loc:"SF / NYC, on-site"}],
@@ -439,6 +439,7 @@ const OVER=[
  {n:"Meta Certified Digital Marketing Associate",cost:"About $99",note:"Over budget. Only worth it if you target Meta or paid roles.",u:"https://markampus.com/blog/meta-blueprint-certification-cost-2026/"},
  {n:"AWS Certified AI Practitioner",cost:"$100",note:"Over budget. Revisit if you go after AWS developer advocate roles.",u:"https://aws.amazon.com/certification/certified-ai-practitioner/"}
 ];
+let __n=0;SPRINTS.forEach(s=>{const a=__n+1;s.days.forEach(d=>{d.num=++__n;d.d="Day "+__n});s.span=a===__n?`Day ${a}`:`Days ${a}–${__n}`});
 const TASKS=[];const REQ={};
 SPRINTS.forEach(s=>{s.reqs.forEach(r=>REQ[r.id]={...r,sprint:s.id});s.days.forEach(d=>d.tasks.forEach(t=>TASKS.push({...t,sprint:s.id,day:d})))});
 const TASK=Object.fromEntries(TASKS.map(t=>[t.id,t]));
@@ -470,7 +471,7 @@ function certsDone(list){return list.filter(c=>st(certKey(c)).done).length}
 function certsView(){
   return `<div style="display:grid;gap:16px">
   <section class="panel"><div class="eyebrow">Free, all of them</div><h2>Certificates for LinkedIn</h2>
-   <p class="sub" style="margin:0">${CERTS.length} certificates, each placed in the sprint where it helps your application. All are free. Earn them during that sprint's week, so the badge is on your profile before you apply.</p>
+   <p class="sub" style="margin:0">${CERTS.length} certificates, each placed in the sprint where it helps your application. All are free. Earn them during that sprint, so the badge is on your profile before you apply.</p>
    <div><b>How to add one to LinkedIn</b></div>
    <ol style="margin:0;padding-left:20px;display:grid;gap:4px">
     <li>On your profile, click <b>Add profile section → Recommended → Add licenses &amp; certifications</b>.</li>
@@ -492,6 +493,7 @@ const statusLabel={have:"Have it",partial:"Partial",missing:"Missing",closed:"Cl
 
 function todayISO(){const n=new Date();return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,"0")}-${String(n.getDate()).padStart(2,"0")}`}
 const TODAY=todayISO();
+function nextDay(){for(const sp of SPRINTS)for(const d of sp.days)if(d.tasks.some(t=>!st(t.id).done))return{d,sp};return null}
 function reqProgress(rid){const ts=TASKS.filter(t=>t.why.includes(rid));const d=ts.filter(t=>st(t.id).done).length;return{d,n:ts.length}}
 function reqStatus(rid){const r=REQ[rid];const p=reqProgress(rid);return p.n&&p.d===p.n?"closed":r.s}
 function sprintProgress(sid){const ts=TASKS.filter(t=>t.sprint===sid);const d=ts.filter(t=>st(t.id).done).length;return{d,n:ts.length}}
@@ -528,7 +530,7 @@ function sprintView(s){
   <section class="panel head"><div class="eyebrow">Sprint ${idx} of 6 · ${esc(s.span)}</div><h2>${esc(s.n)}</h2><p class="sub" style="margin:0">${esc(s.why)}</p>
    <div class="roles">${s.roles.map(r=>`<div class="role${r.main?" main":""}"><div class="t">${esc(r.t)}</div><div>${r.main?`<span class="chip main">Main target</span> `:""}<span class="chip">${esc(r.loc)}</span></div><a href="${r.r.u}" target="_blank" rel="noopener">Read the job posting</a></div>`).join("")}</div></section>
   <section class="panel"><h3>1 · What they screen for, and where you stand</h3><p class="note" style="margin:0">Status turns to Closed once every task linked to that line is ticked.</p>${reqTable(s)}</section>
-  <section class="panel"><h3>2 · Day by day</h3>${s.days.map(d=>`<div class="day"><div class="dayhead"><span class="chip date${d.date===TODAY?" today":""}">${d.date===TODAY?"Today · ":""}${esc(d.d)}</span><b>${esc(d.focus)}</b></div>${d.tasks.map(t=>taskHTML(t,false)).join("")}</div>`).join("")}</section>
+  <section class="panel"><h3>2 · Day by day</h3>${s.days.map(d=>`<div class="day"><div class="dayhead"><span class="chip date${(nextDay()||{}).d===d?" today":""}">${(nextDay()||{}).d===d?"Up next · ":""}${esc(d.d)}</span><b>${esc(d.focus)}</b></div>${d.tasks.map(t=>taskHTML(t,false)).join("")}</div>`).join("")}</section>
   ${CERTS.some(c=>c.sp===s.id)?`<section class="panel"><h3>Certificates to add to LinkedIn this sprint</h3><p class="note" style="margin:0">All free. <a href="#certs" data-go="certs">See all certificates and how to add them</a></p>${CERTS.filter(c=>c.sp===s.id).map(certHTML).join("")}</section>`:""}
   <section class="panel"><h3>3 · The project you'll show them</h3><div><b>${esc(s.project.t)}</b></div><div><span class="note">What you ship:</span> ${esc(s.project.ship)}</div><div><span class="note">Number to report:</span> ${esc(s.project.num)}</div></section>
   <section class="panel"><h3>4 · CV lines to rewrite</h3><p class="note" style="margin:0">Replace every [N] with a real number from your data. If you don't have the number, leave that part out rather than guess.</p><div class="cv">${s.cv.map(c=>`<div class="cvrow"><div class="from">${esc(c.from)}</div><div class="arrow">→</div><div>${esc(c.to)}</div></div>`).join("")}</div></section>
@@ -537,22 +539,15 @@ function sprintView(s){
 }
 
 function todayView(){
-  let day=null,sp=null;
-  for(const s of SPRINTS)for(const d of s.days)if(d.date===TODAY){day=d;sp=s}
-  let lead="";
-  if(!day){
-    const all=SPRINTS.flatMap(s=>s.days.map(d=>({d,s})));
-    const next=all.find(x=>x.d.date>TODAY);
-    if(next){day=next.d;sp=next.s;lead=TODAY<all[0].d.date?"The plan starts soon. Here's day one.":"No tasks today. Here's the next working day."}
-    else return `<section class="panel"><h2>All sprints are behind you</h2><p class="sub">Pick any sprint above to finish what's left.</p></section>`;
-  }
-  const open=TASKS.filter(t=>!st(t.id).done&&t.day.date<day.date);
-  return `<div style="display:grid;gap:16px"><section class="panel"><div class="eyebrow">${esc(sp.n)} sprint · ${esc(day.d)}</div><h2>${esc(day.focus)}</h2>${lead?`<p class="sub" style="margin:0">${lead}</p>`:""}
+  const nd=nextDay();
+  if(!nd)return `<section class="panel"><h2>Every task is ticked</h2><p class="sub">All 6 sprints are done. Open any sprint above to review your notes.</p></section>`;
+  const {d:day,sp}=nd;const total=SPRINTS.reduce((a,s)=>a+s.days.length,0);
+  const ahead=TASKS.filter(t=>st(t.id).done&&t.day.num>day.num).length;
+  return `<div style="display:grid;gap:16px"><section class="panel"><div class="eyebrow">Up next · ${esc(day.d)} of ${total} · ${esc(sp.n)} sprint</div><h2>${esc(day.focus)}</h2>
+  <p class="sub" style="margin:0">Go at your own pace. When every task below is ticked, the next day appears here.${ahead?` You've also ticked ${ahead} task${ahead>1?"s":""} from later days.`:""}</p>
   <p class="note" style="margin:0">Why this matters: these tasks close gaps for the ${esc(sp.roles.find(r=>r.main).t)} role at ${esc(sp.n)}. <a href="#${sp.id}" data-go="${sp.id}">Open the full ${esc(sp.n)} sprint</a></p>
-  ${day.tasks.map(t=>taskHTML(t,false)).join("")}</section>
-  ${open.length?`<section class="panel"><h3>Still open from earlier days (${open.length})</h3>${open.map(t=>taskHTML(t,true)).join("")}</section>`:""}</div>`;
+  ${day.tasks.map(t=>taskHTML(t,false)).join("")}</section></div>`;
 }
-
 function connectView(){
   return `<section class="panel"><h2>How it connects</h2><p class="sub" style="margin:0">Each skill is learned once, in one sprint, then reused. <span class="learn" style="display:inline-block;background:var(--accent);color:var(--surface);border-radius:999px;padding:0 8px;font-size:11px">Learn</span> marks where you learn it; ● marks where it counts as proof.</p>
   <div class="tablebox"><table class="matrix"><thead><tr><th>Skill</th>${SPRINTS.map(s=>`<th class="c">${esc(s.n)}</th>`).join("")}</tr></thead><tbody>${SKILLS.map(k=>`<tr><td>${esc(k.k)}</td>${SPRINTS.map(s=>`<td class="c">${k.in===s.id?`<span class="learn">Learn</span>`:k.use.includes(s.id)?`<span class="use" aria-label="used">●</span>`:""}</td>`).join("")}</tr>`).join("")}</tbody></table></div></section>`;
@@ -566,17 +561,17 @@ function gapsView(){
 
 let view="today";
 function nav(){
-  const items=[{id:"today",k:"Start here",n:"Today"},...SPRINTS.map((s,i)=>({id:s.id,k:`Sprint ${i+1} · ${s.span.split(" · ")[0]}`,n:s.n,sp:true})),{id:"certs",k:"LinkedIn",n:"Certificates",x:1,c:1},{id:"connect",k:"Map",n:"How it connects",x:1},{id:"gaps",k:"Notes",n:"My gaps",x:1}];
+  const items=[{id:"today",k:"Start here",n:"Up next"},...SPRINTS.map((s,i)=>({id:s.id,k:`Sprint ${i+1} · ${s.span.split(" · ")[0]}`,n:s.n,sp:true})),{id:"certs",k:"LinkedIn",n:"Certificates",x:1,c:1},{id:"connect",k:"Map",n:"How it connects",x:1},{id:"gaps",k:"Notes",n:"My gaps",x:1}];
   $("#nav").innerHTML=items.map(it=>{let p="";if(it.c){p=`<span class="p">${certsDone(CERTS)} of ${CERTS.length} earned</span>`}if(it.sp){const q=sprintProgress(it.id);p=`<span class="p">${q.d} of ${q.n} tasks</span><span class="mini"><i style="width:${Math.round(100*q.d/q.n)}%"></i></span>`}return `<button type="button" id="nav-${it.id}" data-go="${it.id}" class="${it.x?"extra":""}" aria-pressed="${view===it.id}"><span class="k">${esc(it.k)}</span><span class="n">${esc(it.n)}</span>${p}</button>`}).join("");
 }
 function overall(){
   const d=TASKS.filter(t=>st(t.id).done).length,n=TASKS.length;
-  const cur=SPRINTS.find(s=>s.days.some(x=>x.date>=TODAY))||SPRINTS[SPRINTS.length-1];
-  $("#overall").innerHTML=`<div class="big">${d}<small> of ${n} tasks done</small></div><div class="bar"><i style="width:${Math.round(100*d/n)}%"></i></div><div class="note">Current sprint: <b>${esc(cur.n)}</b> · ${esc(cur.span)}</div>`;
+  const nd=nextDay();const cur=nd?nd.sp:SPRINTS[SPRINTS.length-1];
+  $("#overall").innerHTML=`<div class="big">${d}<small> of ${n} tasks done</small></div><div class="bar"><i style="width:${Math.round(100*d/n)}%"></i></div><div class="note">${nd?`Up next: <b>${esc(nd.d.d)}</b> · ${esc(cur.n)} sprint`:"All sprints done"}</div>`;
 }
 function render(){
   const v=$("#view");
-  if(view==="today")v.innerHTML=todayView();
+  if(view==="today"){v.innerHTML=todayView();const nd=nextDay();v.dataset.day=nd?String(nd.d.num):""}
   else if(view==="connect")v.innerHTML=connectView();
   else if(view==="gaps")v.innerHTML=gapsView();
   else if(view==="certs")v.innerHTML=certsView();
@@ -601,7 +596,7 @@ function paintTask(id){
   });
 }
 const viewEl=$("#view");
-viewEl.addEventListener("change",e=>{if(e.target.type==="checkbox"){const id=e.target.closest(".task").dataset.id;st(id).done=e.target.checked;paintTask(id);refreshMeta();save(id);if(view==="certs"||SP[view])refreshCertCounts()}});
+viewEl.addEventListener("change",e=>{if(e.target.type==="checkbox"){const id=e.target.closest(".task").dataset.id;st(id).done=e.target.checked;paintTask(id);refreshMeta();save(id);if(view==="certs"||SP[view])refreshCertCounts();if(view==="today"){const nd=nextDay();if(!nd||String(nd.d.num)!==viewEl.dataset.day){render();window.scrollTo({top:0})}}}});
 viewEl.addEventListener("input",e=>{if(e.target.tagName==="TEXTAREA"){const id=e.target.closest(".task").dataset.id;st(id)[e.target.dataset.f]=e.target.value;const fl=e.target.closest(".task").querySelector("[data-flag]");if(fl)fl.textContent=flagText(st(id));clearTimeout(timers[id]);timers[id]=setTimeout(()=>save(id),900)}});
 viewEl.addEventListener("focusout",e=>{if(e.target.tagName==="TEXTAREA"){const id=e.target.closest(".task").dataset.id;if(timers[id]){clearTimeout(timers[id]);save(id)}}});
 
@@ -654,8 +649,7 @@ let start="today";
 try{const h=(location.hash||"").slice(1);start=h||localStorage.getItem("ftg-view")||"today"}catch(e){}
 view=(VIEWS.includes(start)||SP[start])?start:"today";
 render();
-const first=SPRINTS[0].days[0].date;
-$("#when").textContent=TODAY<first?"6 company sprints · starts Mon 12 Oct 2026":"6 company sprints · 9 weeks from Mon 12 Oct 2026";
+$("#when").textContent=`6 company sprints · ${SPRINTS.reduce((a,x)=>a+x.days.length,0)} days · start any day`;
 
 (async()=>{
   let d=null;
